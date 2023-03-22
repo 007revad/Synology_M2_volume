@@ -11,4 +11,29 @@ This script will create a volume on your NVMe drive(s) for you. All you have to 
 
 It also has a dry run mode so you can see what it would have done had you run it for real.
 
-<p align="leftr"><img src="/images/create_m2_volume_dryrun.png"></p>
+<p align="center"><img src="/images/create_m2_volume_dryrun.png"></p>
+
+### What to do after running the script
+
+1. Restart the Synology NAS.
+2. Go to Storage Manager and select online assemble:
+    - Storage Pool > Available Pool > Online Assemble
+3. Optionally enable TRIM:
+    - Storage Pool > ... > Settings > SSD TRIM
+
+<p align="center">Available Storage Pool</p>
+<p align="center"><img src="/images/create_m2_volume_available_pool.png"></p>
+
+<p align="center">Online Assemble step 1</p>
+<p align="center"><img src="/images/create_m2_volume_online_assemble.png"></p>
+
+<p align="center">Online Assemble step 2</p>
+<p align="center"><img src="/images/create_m2_volume_online_assemble2.png"></p>
+
+<p align="center">Success!</p>
+<p align="center"><img src="/images/create_m2_volume_success.png"></p>
+
+<p align="center">Enable TRIM</p>
+<p align="center"><img src="/images/create_m2_volume_enable_trim.png"></p>
+
+

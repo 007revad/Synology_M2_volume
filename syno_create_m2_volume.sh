@@ -1,14 +1,24 @@
 #!/usr/bin/env bash
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------
 # Create volume on M.2 drive(s) on Synology models that don't have a GUI option
-#-------------------------------------------------------------------------------
-
-# https://academy.pointtosource.com/synology/synology-ds920-nvme-m2-ssd-volume/amp/
 #
+# Github: https://github.com/007revad/Synology_M2_volume
+# Script verified at https://www.shellcheck.net/
+# Tested on DSM 7.2 beta
+#
+# To run in a shell (replace /volume1/scripts/ with path to script):
+# sudo /volume1/scripts/create_m2_volume.sh
+#
+# Resources:
+# https://academy.pointtosource.com/synology/synology-ds920-nvme-m2-ssd-volume/amp/
 # https://www.reddit.com/r/synology/comments/pwrch3/how_to_create_a_usable_poolvolume_to_use_as/
+#-----------------------------------------------------------------------------------
 
 
-# TODO Support SATA M.2 drives
+# TODO 
+# Support SATA M.2 drives
+# Maybe add logging
+# Add option to repair damaged array
 
 
 scriptver="v1.0.2"
@@ -47,6 +57,66 @@ echo -e "Type ${Cyan}yes${Off} to continue."\
 read -r answer
 if [[ ${answer,,} != "yes" ]]; then dryrun="yes";\
     echo -e "Doing a dry run test\n"; fi
+
+
+#------------------------------------------------------------------------------
+# Check latest release with GitHub API
+
+get_latest_release() {
+    curl --silent "https://api.github.com/repos/$1/releases/latest" |
+    grep '"tag_name":' |          # Get tag line
+    sed -E 's/.*"([^"]+)".*/\1/'  # Pluck JSON value
+}
+
+tag=$(get_latest_release "$repo")
+shorttag="${tag:1}"
+
+if [[ $HOME =~ /var/services/* ]]; then
+    shorthome=${HOME:14}
+else
+    shorthome="$HOME"
+fi
+
+if ! printf "%s\n%s\n" "$tag" "$scriptver" |
+        sort --check --version-sort &> /dev/null ; then
+    echo -e "${Cyan}There is a newer version of this script available.${Off}"
+    echo -e "Current version: ${scriptver}\nLatest version:  $tag"
+    if [[ ! -d $HOME ]]; then
+        # Can't download to home
+        echo "https://github.com/$repo/releases/latest"
+        sleep 10
+    elif [[ -f $HOME/$script-$shorttag.tar.gz ]]; then
+        # Latest version tar.gz in home but they're using older version
+        echo "https://github.com/$repo/releases/latest"
+        sleep 10
+    else
+        echo -e "${Cyan}Do you want to download $tag now?${Off} {y/n]"
+        read -r -t 30 reply
+        if [[ ${reply,,} == "y" ]]; then
+            if ! curl -LJO "https://github.com/$repo/archive/refs/tags/$tag.tar.gz"; then
+                echo -e "${Error}ERROR ${Off} Failed to download $script-$shorttag.tar.gz!"
+            else
+                if [[ -f $HOME/$script-$shorttag.tar.gz ]]; then
+                    if ! tar -xf "$HOME/$script-$shorttag.tar.gz"; then
+                        echo -e "${Error}ERROR ${Off} Failed to extract $script-$shorttag.tar.gz!"
+                    else
+                        if ! rm "$HOME/$script-$shorttag.tar.gz"; then
+                            echo -e "${Error}ERROR ${Off} Failed to delete downloaded $script-$shorttag.tar.gz!"
+                        else
+                            echo -e "\n$tag and changes.txt are in ${Cyan}$shorthome/$script-$shorttag${Off}"
+                            echo -e "${Cyan}Do you want to stop this script so you can run the new one?${Off} {y/n]"
+                            read -r -t 30 reply
+                            if [[ ${reply,,} == "y" ]]; then exit; fi
+                        fi
+                    fi
+                else
+                    echo -e "${Error}ERROR ${Off} $shorthome/$script-$shorttag.tar.gz not found!"
+                    #ls $HOME/ | grep "$script"  # debug
+                fi
+            fi
+        fi
+    fi
+fi
 
 
 #--------------------------------------------------------------------
@@ -476,6 +546,8 @@ if [[ ${answer,,} != "yes" ]]; then exit; fi
 if [[ $dryrun == "yes" ]]; then
     echo "reboot"  # dryrun
 else
+    # Reboot in the background so user can DSM's "shutting down" message
+    #reboot &  # not working
     reboot
 fi
 

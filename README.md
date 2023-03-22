@@ -12,3 +12,8 @@ This script will create a volume on your NVMe drive(s) for you. All you have to 
 It also has a dry run mode so you can see what it would have done had you run it for real.
 
 <p align="leftr"><img src="/images/create_m2_volume_dryrun.png"></p>
+
+### What to do after running the script
+
+
+

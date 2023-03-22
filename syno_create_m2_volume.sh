@@ -1,17 +1,27 @@
 #!/usr/bin/env bash
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------
 # Create volume on M.2 drive(s) on Synology models that don't have a GUI option
-#-------------------------------------------------------------------------------
-
-# https://academy.pointtosource.com/synology/synology-ds920-nvme-m2-ssd-volume/amp/
 #
+# Github: https://github.com/007revad/Synology_M2_volume
+# Script verified at https://www.shellcheck.net/
+# Tested on DSM 7.2 beta
+#
+# To run in a shell (replace /volume1/scripts/ with path to script):
+# sudo /volume1/scripts/create_m2_volume.sh
+#
+# Resources:
+# https://academy.pointtosource.com/synology/synology-ds920-nvme-m2-ssd-volume/amp/
 # https://www.reddit.com/r/synology/comments/pwrch3/how_to_create_a_usable_poolvolume_to_use_as/
+#-----------------------------------------------------------------------------------
 
 
-# TODO Support SATA M.2 drives
+# TODO 
+# Support SATA M.2 drives
+# Maybe add logging
+# Add option to repair damaged array
 
 
-scriptver="v1.0.1"
+scriptver="v1.0.2"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 
@@ -42,6 +52,73 @@ echo -e "$script $scriptver\ngithub.com/$repo\n"
 dsm=$(get_key_value /etc.defaults/VERSION majorversion)
 
 
+echo -e "Type ${Cyan}yes${Off} to continue."\
+    "Type anything else to do a ${Cyan}dry run test${Off}."
+read -r answer
+if [[ ${answer,,} != "yes" ]]; then dryrun="yes";\
+    echo -e "Doing a dry run test\n"; fi
+
+
+#------------------------------------------------------------------------------
+# Check latest release with GitHub API
+
+get_latest_release() {
+    curl --silent "https://api.github.com/repos/$1/releases/latest" |
+    grep '"tag_name":' |          # Get tag line
+    sed -E 's/.*"([^"]+)".*/\1/'  # Pluck JSON value
+}
+
+tag=$(get_latest_release "$repo")
+shorttag="${tag:1}"
+
+if [[ $HOME =~ /var/services/* ]]; then
+    shorthome=${HOME:14}
+else
+    shorthome="$HOME"
+fi
+
+if ! printf "%s\n%s\n" "$tag" "$scriptver" |
+        sort --check --version-sort &> /dev/null ; then
+    echo -e "${Cyan}There is a newer version of this script available.${Off}"
+    echo -e "Current version: ${scriptver}\nLatest version:  $tag"
+    if [[ ! -d $HOME ]]; then
+        # Can't download to home
+        echo "https://github.com/$repo/releases/latest"
+        sleep 10
+    elif [[ -f $HOME/$script-$shorttag.tar.gz ]]; then
+        # Latest version tar.gz in home but they're using older version
+        echo "https://github.com/$repo/releases/latest"
+        sleep 10
+    else
+        echo -e "${Cyan}Do you want to download $tag now?${Off} {y/n]"
+        read -r -t 30 reply
+        if [[ ${reply,,} == "y" ]]; then
+            if ! curl -LJO "https://github.com/$repo/archive/refs/tags/$tag.tar.gz"; then
+                echo -e "${Error}ERROR ${Off} Failed to download $script-$shorttag.tar.gz!"
+            else
+                if [[ -f $HOME/$script-$shorttag.tar.gz ]]; then
+                    if ! tar -xf "$HOME/$script-$shorttag.tar.gz"; then
+                        echo -e "${Error}ERROR ${Off} Failed to extract $script-$shorttag.tar.gz!"
+                    else
+                        if ! rm "$HOME/$script-$shorttag.tar.gz"; then
+                            echo -e "${Error}ERROR ${Off} Failed to delete downloaded $script-$shorttag.tar.gz!"
+                        else
+                            echo -e "\n$tag and changes.txt are in ${Cyan}$shorthome/$script-$shorttag${Off}"
+                            echo -e "${Cyan}Do you want to stop this script so you can run the new one?${Off} {y/n]"
+                            read -r -t 30 reply
+                            if [[ ${reply,,} == "y" ]]; then exit; fi
+                        fi
+                    fi
+                else
+                    echo -e "${Error}ERROR ${Off} $shorthome/$script-$shorttag.tar.gz not found!"
+                    #ls $HOME/ | grep "$script"  # debug
+                fi
+            fi
+        fi
+    fi
+fi
+
+
 #--------------------------------------------------------------------
 # Check there's no active resync
 
@@ -57,24 +134,26 @@ fi
 
 getm2info() {
     nvmemodel=$(cat "$1/device/model")
-    nvmemodel=$(printf "%s" "$nvmemodel" | xargs)  # trim leading and trailing white space
-    echo "$2 M.2 $(basename -- "${1}") is $nvmemodel" >&2  # debug
+    nvmemodel=$(printf "%s" "$nvmemodel" | xargs)  # trim leading/trailing space
+    echo "$2 M.2 $(basename -- "${1}") is $nvmemodel" >&2
     dev="$(basename -- "${1}")"
 
     #echo "/dev/${dev}" >&2  # debug
 
-    #if cat /proc/mdstat | grep -E active.*${dev} >/dev/null ; then  # useless cat
     if grep -E "active.*${dev}" /proc/mdstat >/dev/null ; then
         echo -e "${Cyan}Skipping drive as it is being used by DSM${Off}" >&2
         #active="yes"
     else
-        if [[ -e /dev/${dev}p1 ]] && [[ -e /dev/${dev}p2 ]] && [[ -e /dev/${dev}p3 ]]; then
+        if [[ -e /dev/${dev}p1 ]] && [[ -e /dev/${dev}p2 ]] &&\
+                [[ -e /dev/${dev}p3 ]]; then
             echo -e "${Cyan}WARNING Drive has a volume partition${Off}" >&2
             haspartitons="yes"
-        elif [[ ! -e /dev/${dev}p3 ]] && [[ ! -e /dev/${dev}p2 ]] && [[ -e /dev/${dev}p1 ]]; then
+        elif [[ ! -e /dev/${dev}p3 ]] && [[ ! -e /dev/${dev}p2 ]] &&\
+                [[ -e /dev/${dev}p1 ]]; then
             echo -e "${Cyan}WARNING Drive has a cache partition${Off}" >&2
             haspartitons="yes"
-        elif [[ ! -e /dev/${dev}p3 ]] && [[ ! -e /dev/${dev}p2 ]] && [[ ! -e /dev/${dev}p1 ]]; then
+        elif [[ ! -e /dev/${dev}p3 ]] && [[ ! -e /dev/${dev}p2 ]] &&\
+                [[ ! -e /dev/${dev}p1 ]]; then
             echo "No existing partitions on drive" >&2
         fi
         m2list+=("${dev}")
@@ -104,8 +183,6 @@ echo -e "Unused M.2 drives found: ${#m2list[@]}\n"
 
 #echo -e "NVMe list: '${m2list[@]}'\n"  # debug
 #echo -e "NVMe qty: ${#m2list[@]}\n"    # debug
-
-#echo -e "${Red}I need to check if the drives are being used...${Off}\n"  # WIP
 
 
 #--------------------------------------------------------------------
@@ -142,8 +219,8 @@ if [[ ${#m2list[@]} -gt "1" ]]; then
     done
     echo
 elif [[ ${#m2list[@]} -eq "1" ]]; then
-  raidtype="1"
-  single="yes"
+    raidtype="1"
+    single="yes"
 fi
 
 
@@ -209,7 +286,7 @@ select nvmes in "${m2list[@]}" "Quit"; do
             ;;
     esac
 done
-echo -e "\nYou selected $m21"  # debug
+#echo -e "\nYou selected $m21"  # debug
 echo
 
 
@@ -292,21 +369,21 @@ fi
 
 PS3="Select the file system: "
 select filesys in "btrfs" "ext4"; do
-  case "$filesys" in
-    btrfs)
-      #echo -e "\nYou selected btrfs"  # debug
-      format="btrfs"
-      break
-      ;;
-    ext4)
-      #echo -e "\nYou selected ext4"  # debug
-      format="ext4"
-      break
-      ;;
-    *) 
-      echo -e "${Red}Invalid answer${Off}! Try again."
-      ;;
-  esac
+    case "$filesys" in
+        btrfs)
+            #echo -e "\nYou selected btrfs"  # debug
+            format="btrfs"
+            break
+            ;;
+        ext4)
+            #echo -e "\nYou selected ext4"  # debug
+            format="ext4"
+            break
+            ;;
+        *) 
+            echo -e "${Red}Invalid answer${Off}! Try again."
+            ;;
+    esac
 done
 echo
 
@@ -315,13 +392,15 @@ echo
 # Let user confirm their choices
 
 if [[ $m22 ]]; then
-  echo -e "Ready to create RAID $raidtype $format volume using $m21 and $m22"
+    echo -e "Ready to create ${Cyan}RAID $raidtype $format${Off} volume"\
+        "using ${Cyan}$m21${Off} and ${Cyan}$m22${Off}"
 else
-  echo -e "Ready to create $format volume using $m21"
+    echo -e "Ready to create ${Cyan}$format${Off} volume on ${Cyan}$m21${Off}"
 fi
 
 if [[ $haspartitons == "yes" ]]; then
-    echo -e "\n${Red}WARNING${Off} Everything on the selected M.2 drive(s) will be deleted."
+    echo -e "\n${Red}WARNING${Off} Everything on the selected"\
+        "M.2 drive(s) will be deleted."
 fi
 echo -e "Type ${Cyan}yes${Off} to continue. Type anything else to quit."
 read -r answer
@@ -340,15 +419,10 @@ sleep 3
 lastmd=$(grep -oP "md[0-9]{1,2}" "/proc/mdstat" | sort | tail -1)
 nextmd=$(("${lastmd:2}" +1))
 echo "Using md$nextmd as it's the next available."  # debug
-#echo ""
 
 
 #--------------------------------------------------------------------
 # Create Synology partitions on selected M.2 drives
-
-
-# DANGER WILL ROBINSON, DANGER --------------------------------------------------------------------
-
 
 if [[ $dsm == "7" ]]; then
     synopartindex=13  # Syno partition index for NVMe drives can be 12 or 13 or ?
@@ -357,23 +431,35 @@ else
 fi
 if [[ $m21 ]]; then
     echo -e "\nCreating Synology partitions on $m21"
-#    synopartition --part /dev/"$m21" $synopartindex
-    echo "synopartition --part /dev/$m21 $synopartindex"  # debug
+    if [[ $dryrun == "yes" ]]; then
+        echo "synopartition --part /dev/$m21 $synopartindex"  # dryrun
+    else
+        synopartition --part /dev/"$m21" "$synopartindex"
+    fi
 fi
 if [[ $m22 ]]; then
     echo -e "\nCreating Synology partitions on $m22"
-#    synopartition --part /dev/"$m22" $synopartindex
-    echo "synopartition --part /dev/$m22 $synopartindex"  # debug
+    if [[ $dryrun == "yes" ]]; then
+        echo "synopartition --part /dev/$m22 $synopartindex"  # dryrun
+    else
+        synopartition --part /dev/"$m22" "$synopartindex"
+    fi
 fi
 if [[ $m23 ]]; then
     echo -e "\nCreating Synology partitions on $m23"
-#    synopartition --part /dev/"$m23" $synopartindex
-    echo "synopartition --part /dev/$m23 $synopartindex"  # debug
+    if [[ $dryrun == "yes" ]]; then
+        echo "synopartition --part /dev/$m23 $synopartindex"  # dryrun
+    else
+        synopartition --part /dev/"$m23" "$synopartindex"
+    fi
 fi
 if [[ $m24 ]]; then
     echo -e "\nCreating Synology partitions on $m24"
-#    synopartition --part /dev/"$m24" $synopartindex
-    echo "synopartition --part /dev/$m24 $synopartindex"  # debug
+    if [[ $dryrun == "yes" ]]; then
+        echo "synopartition --part /dev/$m24 $synopartindex"  # dryrun
+    else
+        synopartition --part /dev/"$m24" "$synopartindex"
+    fi
 fi
 
 
@@ -383,40 +469,57 @@ fi
 #if [[ $raidtype ]]; then
 if [[ $m21 ]] && [[ $m22 ]]; then
     echo -e "\nCreating the RAID array. This can take 10 minutes or more..."
-#    mdadm --create /dev/md$nextmd --level=$raidtype --raid-devices=2 --force /dev/$m21}p3 /dev/$m22}p3
-    echo "mdadm --create /dev/md$nextmd --level=$raidtype --raid-devices=2 --force /dev/${m21}p3 /dev/${m22}p3"  # debug
+    if [[ $dryrun == "yes" ]]; then
+        echo "mdadm --create /dev/md${nextmd} --level=${raidtype} --raid-devices=2"\
+            "--force /dev/${m21}p3 /dev/${m22}p3"                # dryrun
+    else
+        mdadm --create /dev/md"${nextmd}" --level="${raidtype}" --raid-devices=2\
+            --force /dev/"${m21}"p3 /dev/"${m22}"p3
+    fi
     resyncsleep=5
 else
     # I assume single drive is --level=1 --raid-devices=1 ?
     echo -e "\nCreating single drive device."
-#    mdadm --create /dev/md$nextmd --level=1 --raid-devices=1 --force /dev/$m21}p3
-    echo "mdadm --create /dev/md$nextmd --level=1 --raid-devices=1 --force /dev/${m21}p3"  # debug
+    if [[ $dryrun == "yes" ]]; then
+        echo "mdadm --create /dev/md${nextmd} --level=1 --raid-devices=1"\
+            "--force /dev/${m21}p3"                              # dryrun
+    else
+        mdadm --create /dev/md${nextmd} --level=1 --raid-devices=1\
+            --force /dev/"${m21}"p3
+    fi
     resyncsleep=30
 fi
 
 # Show resync progress every 30 seconds
 while grep resync /proc/mdstat >/dev/null; do
     grep -E -A 2 active.*nvme /proc/mdstat | grep resync | cut -d"(" -f1
-    sleep $resyncsleep
+    sleep "$resyncsleep"
 done
 
 
 #--------------------------------------------------------------------
 # Format the array
 
-# Ensure mkfs.btrfs sees the raid is a SSD and optimises the file system for an SSD
-#echo 0 > /sys/block/md$nextmd/queue/rotational  # Is this even valid for mkfs.ext4 ?
+# Ensure mkfs.btrfs and mkfs.ext4 sees raid as SSD and optimises file system for SSD
 
 if [[ $format == "btrfs" ]]; then
-#   echo 0 > /sys/block/md$nextmd/queue/rotational
-    echo "echo 0 > /sys/block/md$nextmd/queue/rotational"  # debug
-#    mkfs.btrfs -f /dev/md$nextmd
-    echo mkfs.btrfs -f /dev/md$nextmd  # debug
+    if [[ $dryrun == "yes" ]]; then
+        echo "echo 0 > /sys/block/md${nextmd}/queue/rotational"  # dryrun
+        echo "mkfs.btrfs -f /dev/md${nextmd}"                    # dryrun
+    else
+        # Ensure mkfs.btrfs sees raid as SSD and optimises file system for SSD
+        echo 0 > /sys/block/md${nextmd}/queue/rotational
+        mkfs.btrfs -f /dev/md${nextmd}
+    fi
 elif [[ $format == "ext4" ]]; then
-#    echo 0 > /sys/block/md$nextmd/queue/rotational  # Is this even valid for mkfs.ext4 ?
-    echo "echo 0 > /sys/block/md$nextmd/queue/rotational"  # debug
-#    mkfs.ext4 -F /dev/md$nextmd
-    echo "mkfs.ext4 -f /dev/md$nextmd"  # debug
+    if [[ $dryrun == "yes" ]]; then
+        echo "echo 0 > /sys/block/md${nextmd}/queue/rotational"  # dryrun
+        echo "mkfs.ext4 -f /dev/md${nextmd}"                     # dryrun
+    else
+        # Ensure mkfs.ext4 sees raid as SSD and optimises file system for SSD
+        echo 0 > /sys/block/md${nextmd}/queue/rotational  # Is this valid for mkfs.ext4 ?
+        mkfs.ext4 -F /dev/md${nextmd}
+    fi
 else
     echo "What file system did you select!?"; exit
 fi
@@ -440,8 +543,13 @@ echo -e "Type ${Cyan}yes${Off} to reboot now."
 echo -e "Type anything else to quit (if you will restart it yourself)."
 read -r answer
 if [[ ${answer,,} != "yes" ]]; then exit; fi
-#reboot
-echo "reboot"  # debug
+if [[ $dryrun == "yes" ]]; then
+    echo "reboot"  # dryrun
+else
+    # Reboot in the background so user can DSM's "shutting down" message
+    #reboot &  # not working
+    reboot
+fi
 
 
 #exit  # Don't exit so user can DSM's "shutting down" message

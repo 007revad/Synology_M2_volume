@@ -5,7 +5,9 @@
 
 ### Description
 
-Easily create an M.2 volume on Synology NAS without a lot of typing and no need for any how-to guides. This script will create the RAID and storage pool on your NVMe drive(s) for you so you can then create the volume in the DSM GUI.
+Easily create an M.2 volume on Synology NAS without a lot of typing and no need for any how-to guides. 
+
+This script will create the RAID and storage pool on your NVMe drive(s) for you so you can then create the volume in the DSM GUI.
 
 All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer some simple questions. Then reboot, go to Storage Manager, Online Assemable and Create Volume.
 

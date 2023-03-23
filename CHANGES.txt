@@ -1,3 +1,9 @@
+v1.1.4
+- Now only creates the RAID array and storage pool. Volume creation can now be done in DSM.
+- Because you now create the volume in DSM you can set the volume size.
+- Changed to create pool volume and volume group like Synology does.
+- Added instructions to create the volume in DSM.
+
 v1.0.3
 Changed 'latest version check' to download to /tmp and extract files to the script's location.
 

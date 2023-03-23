@@ -12,25 +12,32 @@
 # Resources:
 # https://academy.pointtosource.com/synology/synology-ds920-nvme-m2-ssd-volume/amp/
 # https://www.reddit.com/r/synology/comments/pwrch3/how_to_create_a_usable_poolvolume_to_use_as/
+#
+# Over-Provisioning unnecessary on modern SSDs (since ~2014)
+# https://easylinuxtipsproject.blogspot.com/p/ssd.html#ID16.2
 #-----------------------------------------------------------------------------------
 
 
 # TODO 
-# Allow specifying the size of the volume to leave unused space for drive wear management.
-#
-# Instead of creating the filesystem directly on the mdraid device, you can use LVM to create a PV on it,
-# and a VG, and then use the UI to create volume(s), making it more "standard" to what DSM would do
-#
-# Physical Volume (PV): Consists of Raw disks or RAID arrays or other storage devices.
-# Volume Group (VG): Combines the physical volumes into storage groups.
-# Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
-#
+# Better detection if DSM is uisng the drive.
+# Show drive names the same as DSM does
 # Support SATA M.2 drives
 # Maybe add logging
 # Add option to repair damaged array
 
+# DONE
+# Allow specifying the size of the volume to leave unused space for drive wear management.
+#
+# Instead of creating the filesystem directly on the mdraid device, you can use LVM to create a PV on it,
+# and a VG, and then use the UI to create volume(s), making it more "standard" to what DSM would do
+# https://systemadmintutorial.com/how-to-configure-lvm-in-linuxpvvglv/
+#
+# Physical Volume (PV): Consists of Raw disks or RAID arrays or other storage devices.
+# Volume Group (VG): Combines the physical volumes into storage groups.
+# Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
-scriptver="v1.0.3"
+
+scriptver="v1.1.4"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 
@@ -204,6 +211,8 @@ echo -e "Unused M.2 drives found: ${#m2list[@]}\n"
 
 #echo -e "NVMe list: '${m2list[@]}'\n"  # debug
 #echo -e "NVMe qty: ${#m2list[@]}\n"    # debug
+
+if [[ ${#m2list[@]} == "0" ]]; then exit; fi
 
 
 #--------------------------------------------------------------------
@@ -386,37 +395,13 @@ fi
 
 
 #--------------------------------------------------------------------
-# Select file system
-
-PS3="Select the file system: "
-select filesys in "btrfs" "ext4"; do
-    case "$filesys" in
-        btrfs)
-            #echo -e "\nYou selected btrfs"  # debug
-            format="btrfs"
-            break
-            ;;
-        ext4)
-            #echo -e "\nYou selected ext4"  # debug
-            format="ext4"
-            break
-            ;;
-        *) 
-            echo -e "${Red}Invalid answer${Off}! Try again."
-            ;;
-    esac
-done
-echo
-
-
-#--------------------------------------------------------------------
 # Let user confirm their choices
 
 if [[ $m22 ]]; then
-    echo -e "Ready to create ${Cyan}RAID $raidtype $format${Off} volume"\
-        "using ${Cyan}$m21${Off} and ${Cyan}$m22${Off}"
+    echo -e "Ready to create ${Cyan}RAID $raidtype ${Off} volume"\
+        "group using ${Cyan}$m21${Off} and ${Cyan}$m22${Off}"
 else
-    echo -e "Ready to create ${Cyan}$format${Off} volume on ${Cyan}$m21${Off}"
+    echo -e "Ready to create volume group on ${Cyan}$m21${Off}"
 fi
 
 if [[ $haspartitons == "yes" ]]; then
@@ -519,47 +504,48 @@ done
 
 
 #--------------------------------------------------------------------
-# Format the array
+# Create Physical Volume and Volume Group with LVM
 
-# Ensure mkfs.btrfs and mkfs.ext4 sees raid as SSD and optimises file system for SSD
-
-if [[ $format == "btrfs" ]]; then
-    if [[ $dryrun == "yes" ]]; then
-        echo "echo 0 > /sys/block/md${nextmd}/queue/rotational"  # dryrun
-        echo "mkfs.btrfs -f /dev/md${nextmd}"                    # dryrun
-    else
-        # Ensure mkfs.btrfs sees raid as SSD and optimises file system for SSD
-        echo 0 > /sys/block/md${nextmd}/queue/rotational
-        mkfs.btrfs -f /dev/md${nextmd}
-    fi
-elif [[ $format == "ext4" ]]; then
-    if [[ $dryrun == "yes" ]]; then
-        echo "echo 0 > /sys/block/md${nextmd}/queue/rotational"  # dryrun
-        echo "mkfs.ext4 -f /dev/md${nextmd}"                     # dryrun
-    else
-        # Ensure mkfs.ext4 sees raid as SSD and optimises file system for SSD
-        echo 0 > /sys/block/md${nextmd}/queue/rotational  # Is this valid for mkfs.ext4 ?
-        mkfs.ext4 -F /dev/md${nextmd}
-    fi
+# Create a physical volume (PV) on the partition
+echo -e "\nCreating a physical volume (PV) on md$nextmd partition"
+if [[ $dryrun == "yes" ]]; then
+    echo "pvcreate /dev/md$nextmd"                                 # dryrun
 else
-    echo "What file system did you select!?"; exit
+    pvcreate /dev/md$nextmd
+fi
+
+# Create a volume group (VG)
+echo -e "\nCreating a volume group (VG) on md$nextmd partition"
+if [[ $dryrun == "yes" ]]; then
+    echo "vgcreate vg$nextmd /dev/md$nextmd"                        # dryrun
+else
+    vgcreate vg$nextmd /dev/md$nextmd
 fi
 
 
 #--------------------------------------------------------------------
 # Notify of remaining steps
 
-echo -e "\nAfter the restart go to Storage Manager and select online assemble:"
-echo -e "  ${Cyan}Storage Pool > Available Pool > Online Assemble${Off}"
-
-echo -e "Then, optionally, enable TRIM:"
-echo -e "  ${Cyan}Storage Pool > ... > Settings > SSD TRIM${Off}"
+echo -e "\n${Cyan}Remaining steps you need to do${Off}"
+cat <<EOF
+  1. After the restart go to Storage Manager and select online assemble:
+       Storage Pool > Available Pool > Online Assemble
+  2. Create the volume:
+       Select the new Storage Pool > Create > Create Volume
+  3. Set the allocated size to max, or 7% less for overprovisioning.
+  4. Optionally enter a volume description. Be creative :)
+       Click Next
+  5. Select the file system: Btrfs or ext4.
+       Click Next and you've finished creating your volume.
+  6. Then, optionally, enable TRIM:
+       Storage Pool > ... > Settings > SSD TRIM
+EOF
 
 
 #--------------------------------------------------------------------
 # Reboot
 
-echo -e "\nThe Synology needs to restart."
+echo -e "\n${Cyan}The Synology needs to restart.${Off}"
 echo -e "Type ${Cyan}yes${Off} to reboot now."
 echo -e "Type anything else to quit (if you will restart it yourself)."
 read -r answer

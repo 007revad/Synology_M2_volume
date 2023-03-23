@@ -1,5 +1,5 @@
 v1.0.3
-Changed 'latest version check' to download to /tmp and extract files to the script's location
+Changed 'latest version check' to download to /tmp and extract files to the script's location.
 
 v1.0.2
 Initial release.

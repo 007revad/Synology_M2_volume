@@ -17,7 +17,7 @@ sudo /volume1/scripts/create_m2_volume.sh
 
 It also has a dry run mode so you can see what it would have done had you run it for real.
 
-<p align="center"><img src="/images/create_m2_volume_dryrun.png"></p>
+<p align="center"><img src="/images/create-volume0.png"></p>
 
 ### What to do after running the script
 

@@ -16,12 +16,21 @@
 
 
 # TODO 
+# Allow specifying the size of the volume to leave unused space for drive wear management.
+#
+# Instead of creating the filesystem directly on the mdraid device, you can use LVM to create a PV on it,
+# and a VG, and then use the UI to create volume(s), making it more "standard" to what DSM would do
+#
+# Physical Volume (PV): Consists of Raw disks or RAID arrays or other storage devices.
+# Volume Group (VG): Combines the physical volumes into storage groups.
+# Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
+#
 # Support SATA M.2 drives
 # Maybe add logging
 # Add option to repair damaged array
 
 
-scriptver="v1.0.2"
+scriptver="v1.0.3"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 
@@ -63,56 +72,68 @@ if [[ ${answer,,} != "yes" ]]; then dryrun="yes";\
 # Check latest release with GitHub API
 
 get_latest_release() {
-    curl --silent "https://api.github.com/repos/$1/releases/latest" |
+    # Curl timeout options:
+    # https://unix.stackexchange.com/questions/94604/does-curl-have-a-timeout
+    curl --silent -m 10 --connect-timeout 5 \
+        "https://api.github.com/repos/$1/releases/latest" |
     grep '"tag_name":' |          # Get tag line
     sed -E 's/.*"([^"]+)".*/\1/'  # Pluck JSON value
 }
 
 tag=$(get_latest_release "$repo")
 shorttag="${tag:1}"
-
-if [[ $HOME =~ /var/services/* ]]; then
-    shorthome=${HOME:14}
-else
-    shorthome="$HOME"
-fi
+scriptpath=$(dirname -- "$0")
 
 if ! printf "%s\n%s\n" "$tag" "$scriptver" |
         sort --check --version-sort &> /dev/null ; then
     echo -e "${Cyan}There is a newer version of this script available.${Off}"
     echo -e "Current version: ${scriptver}\nLatest version:  $tag"
-    if [[ ! -d $HOME ]]; then
-        # Can't download to home
+    if [[ -f $scriptpath/$script-$shorttag.tar.gz ]]; then
+        # They have the latest version tar.gz downloaded but are using older version
         echo "https://github.com/$repo/releases/latest"
         sleep 10
-    elif [[ -f $HOME/$script-$shorttag.tar.gz ]]; then
-        # Latest version tar.gz in home but they're using older version
+    elif [[ -d $scriptpath/$script-$shorttag ]]; then
+        # They have the latest version extracted but are using older version
         echo "https://github.com/$repo/releases/latest"
         sleep 10
     else
         echo -e "${Cyan}Do you want to download $tag now?${Off} {y/n]"
         read -r -t 30 reply
         if [[ ${reply,,} == "y" ]]; then
-            if ! curl -LJO "https://github.com/$repo/archive/refs/tags/$tag.tar.gz"; then
-                echo -e "${Error}ERROR ${Off} Failed to download $script-$shorttag.tar.gz!"
-            else
-                if [[ -f $HOME/$script-$shorttag.tar.gz ]]; then
-                    if ! tar -xf "$HOME/$script-$shorttag.tar.gz"; then
-                        echo -e "${Error}ERROR ${Off} Failed to extract $script-$shorttag.tar.gz!"
-                    else
-                        if ! rm "$HOME/$script-$shorttag.tar.gz"; then
-                            echo -e "${Error}ERROR ${Off} Failed to delete downloaded $script-$shorttag.tar.gz!"
-                        else
-                            echo -e "\n$tag and changes.txt are in ${Cyan}$shorthome/$script-$shorttag${Off}"
-                            echo -e "${Cyan}Do you want to stop this script so you can run the new one?${Off} {y/n]"
-                            read -r -t 30 reply
-                            if [[ ${reply,,} == "y" ]]; then exit; fi
-                        fi
-                    fi
+            if cd /tmp; then
+                url="https://github.com/$repo/archive/refs/tags/$tag.tar.gz"
+                if ! curl -LJO -m 30 --connect-timeout 5 "$url";
+                then
+                    echo -e "${Error}ERROR ${Off} Failed to download"\
+                        "$script-$shorttag.tar.gz!"
                 else
-                    echo -e "${Error}ERROR ${Off} $shorthome/$script-$shorttag.tar.gz not found!"
-                    #ls $HOME/ | grep "$script"  # debug
+                    if [[ -f /tmp/$script-$shorttag.tar.gz ]]; then
+                        # Extract tar file to script location
+                        if ! tar -xf "/tmp/$script-$shorttag.tar.gz" -C "$scriptpath";
+                        then
+                            echo -e "${Error}ERROR ${Off} Failed to"\
+                                "extract $script-$shorttag.tar.gz!"
+                        else
+                            if ! rm "/tmp/$script-$shorttag.tar.gz"; then
+                                echo -e "${Error}ERROR ${Off} Failed to delete"\
+                                    "downloaded $script-$shorttag.tar.gz!"
+                            else
+                                echo -e "\n$tag and changes.txt are in "\
+                                    "${Cyan}$scriptpath/$script-$shorttag${Off}"
+                                echo -e "${Cyan}Do you want to stop this script"\
+                                    "so you can run the new one?${Off} {y/n]"
+                                read -r -t 30 reply
+                                if [[ ${reply,,} == "y" ]]; then exit; fi
+                            fi
+                        fi
+                    else
+                        echo -e "${Error}ERROR ${Off}"\
+                            "/tmp/$script-$shorttag.tar.gz not found!"
+                        #ls /tmp | grep "$script"  # debug
+                    fi
                 fi
+            else
+                echo -e "${Error}ERROR ${Off} Failed to cd to /tmp!"
             fi
         fi
     fi
@@ -413,7 +434,7 @@ sleep 3
 
 
 #--------------------------------------------------------------------
-# Get highest md#
+# Get highest md# mdraid device
 
 # Using "md[0-9]{1,2}" to avoid md126 and md127 etc
 lastmd=$(grep -oP "md[0-9]{1,2}" "/proc/mdstat" | sort | tail -1)
@@ -531,7 +552,7 @@ fi
 echo -e "\nAfter the restart go to Storage Manager and select online assemble:"
 echo -e "  ${Cyan}Storage Pool > Available Pool > Online Assemble${Off}"
 
-echo -e "Then enable TRIM:"
+echo -e "Then, optionally, enable TRIM:"
 echo -e "  ${Cyan}Storage Pool > ... > Settings > SSD TRIM${Off}"
 
 

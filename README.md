@@ -11,14 +11,16 @@ This script will create the RAID and storage pool on your NVMe drive(s) for you 
 
 All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer some simple questions. Then reboot, go to Storage Manager, Online Assemable and Create Volume.
 
-Confirmed working on:
-- DS1821+ DSM 7.2 Beta
-- DS1821+ DSM 7.1 Update 4
-- DS1621+ DSM 7.1.1-42962 Update 4
-- DS920+ DSM 7.1.1-42962 Update 1
-- DS720+ DSM 7.2 Beta
-- DS918+ DSM 7.1.1
+**Confirmed working on:**
 
+| Model        | DSM version              |
+| ------------ |--------------------------|
+| DS1821+      | DSM 7.2 Beta             |
+| DS1821+      | DSM 7.1 Update 4         |
+| DS1621+      | DSM 7.1.1-42962 Update 4 |
+| DS920+       | DSM 7.1.1-42962 Update 1 |
+| DS720+       | DSM 7.2 Beta             |
+| DS918+       | DSM 7.1.1                |
 
 ### To run the script ###
 
@@ -46,13 +48,15 @@ It also has a dry run mode so you can see what it would have done had you run it
 2. Go to Storage Manager and select Online Assemble:
     - Storage Pool > Available Pool > Online Assemble
 3. Create the volume:
-    - Select the new Storage Pool > Create > Create Volume
-4. Set the allocated size to max, or 7% less for overprovisioning.
-5. Optionally enter a volume description. Be creative :)
-    - Click Next
-6. Select the file system: Btrfs or ext4.
-    - Click Next and you've finished creating your volume.
-7. Optionally enable and schedule TRIM:
+    - Select the new Storage Pool > Create > Create Volume.
+    - Set the allocated size.
+      - Optionally enter a volume description. Be creative :)
+    - Click Next.
+    - Select the file system (Btrfs or ext4) and click Next.
+    - Optionally enable *Encrypt this volume* and click Next.
+      - Create an encryption password or enter your existing encryption password. 
+    - Confirm your settings and click Apply to finish creating your M.2 volume.
+4. Optionally enable and schedule TRIM:
     - Storage Pool > ... > Settings > SSD TRIM
 
 <p align="center">Storage Pool available for online assembly</p>

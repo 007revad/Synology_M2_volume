@@ -47,7 +47,7 @@ It also has a dry run mode so you can see what it would have done had you run it
 1. Restart the Synology NAS.
 2. Go to Storage Manager and select Online Assemble:
     - Storage Pool > Available Pool > Online Assemble
-3. Create the volume:
+3. Create the volume as you normally would:
     - Select the new Storage Pool > Create > Create Volume.
     - Set the allocated size.
       - Optionally enter a volume description. Be creative :)

@@ -11,8 +11,18 @@ This script will create the RAID and storage pool on your NVMe drive(s) for you 
 
 All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer some simple questions. Then reboot, go to Storage Manager, Online Assemable and Create Volume.
 
+Confirmed working on:
+- DS1821+ DSM 7.2 Beta
+- DS1621+ DSM 7.1.1-42962 Update 4
+- DS920+ DSM 7.1.1-42962 Update 1
+- DS720+ DSM 7.2 Beta
+- DS918+ DSM 7.1.1
+
+
+### To run the script ###
+
 ```YAML
-sudo /volume1/scripts/create_m2_volume.sh
+sudo i /volume1/scripts/create_m2_volume.sh
 ```
 
 **Note:** Replace /volume1/scripts/ with the path to where the script is located.

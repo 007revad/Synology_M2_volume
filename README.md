@@ -45,7 +45,7 @@ It also has a dry run mode so you can see what it would have done had you run it
 <p align="center">Online Assemble step 2</p>
 <p align="center"><img src="/images/create_m2_volume_online_assemble2.png"></p>
 
-<p align="center">Create volume</p>
+<p align="center">Create Volume</p>
 <p align="center"><img src="/images/create-volume1.png"></p>
 
 <p align="center">Allocate volume capacity</p>

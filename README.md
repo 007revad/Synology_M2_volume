@@ -23,7 +23,7 @@ Confirmed working on:
 ### To run the script ###
 
 ```YAML
-sudo i /volume1/scripts/create_m2_volume.sh
+sudo -i /volume1/scripts/create_m2_volume.sh
 ```
 
 **Note:** Replace /volume1/scripts/ with the path to where the script is located.

@@ -1,5 +1,5 @@
 v1.1.5
-- Added single progress bar for the resync progress.
+- Added single line progress bar for the resync progress.
 - Changed latest version check to download to /tmp and extract files to the script's location replacing the existing .sh and readme.txt files.
 - Added options:
    -a, --all        List all M.2 drives even if detected as active

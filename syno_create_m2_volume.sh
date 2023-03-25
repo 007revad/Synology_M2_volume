@@ -27,6 +27,11 @@
 # Add option to repair damaged array.
 
 # DONE
+# Check for errors from synopartiton, mdadm, pvcreate and vgcreate 
+#   so the script doesn't continue and appear to have succeeded.
+#
+# Changed "pvcreate" to "pvcreate -ff" to avoid issues.
+#
 # Changed latest version check to download to /tmp and extract files to the script's location,
 # replacing the existing .sh and readme.txt files.
 #
@@ -60,7 +65,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.1.6"
+scriptver="v1.1.7"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 
@@ -593,7 +598,10 @@ if [[ $m21 ]]; then
     if [[ $dryrun == "yes" ]]; then
         echo "synopartition --part /dev/$m21 $synopartindex"  # dryrun
     else
-        synopartition --part /dev/"$m21" "$synopartindex"
+        if ! synopartition --part /dev/"$m21" "$synopartindex"; then
+            echo -e "\n${Error}ERROR 5${Off} Failed to create syno partitions!"
+            exit 1
+        fi
     fi
 fi
 if [[ $m22 ]]; then
@@ -601,7 +609,10 @@ if [[ $m22 ]]; then
     if [[ $dryrun == "yes" ]]; then
         echo "synopartition --part /dev/$m22 $synopartindex"  # dryrun
     else
-        synopartition --part /dev/"$m22" "$synopartindex"
+        if ! synopartition --part /dev/"$m22" "$synopartindex"; then
+            echo -e "\n${Error}ERROR 5${Off} Failed to create syno partitions!"
+            exit 1
+        fi
     fi
 fi
 if [[ $m23 ]]; then
@@ -609,7 +620,10 @@ if [[ $m23 ]]; then
     if [[ $dryrun == "yes" ]]; then
         echo "synopartition --part /dev/$m23 $synopartindex"  # dryrun
     else
-        synopartition --part /dev/"$m23" "$synopartindex"
+        if ! synopartition --part /dev/"$m23" "$synopartindex"; then
+            echo -e "\n${Error}ERROR 5${Off} Failed to create syno partitions!"
+            exit 1
+        fi
     fi
 fi
 if [[ $m24 ]]; then
@@ -617,7 +631,10 @@ if [[ $m24 ]]; then
     if [[ $dryrun == "yes" ]]; then
         echo "synopartition --part /dev/$m24 $synopartindex"  # dryrun
     else
-        synopartition --part /dev/"$m24" "$synopartindex"
+        if ! synopartition --part /dev/"$m24" "$synopartindex"; then
+            echo -e "\n${Error}ERROR 5${Off} Failed to create syno partitions!"
+            exit 1
+        fi
     fi
 fi
 
@@ -632,8 +649,11 @@ if [[ $m21 ]] && [[ $m22 ]]; then
         echo "mdadm --create /dev/md${nextmd} --level=${raidtype} --raid-devices=2"\
             "--force /dev/${m21}p3 /dev/${m22}p3"                # dryrun
     else
-        mdadm --create /dev/md"${nextmd}" --level="${raidtype}" --raid-devices=2\
-            --force /dev/"${m21}"p3 /dev/"${m22}"p3
+        if ! mdadm --create /dev/md"${nextmd}" --level="${raidtype}" --raid-devices=2\
+            --force /dev/"${m21}"p3 /dev/"${m22}"p3; then
+            echo -e "\n${Error}ERROR 5${Off} Failed to create RAID!"
+            exit 1
+        fi
     fi
 else
     echo -e "\nCreating single drive RAID."
@@ -641,8 +661,11 @@ else
         echo "mdadm --create /dev/md${nextmd} --level=1 --raid-devices=1"\
             "--force /dev/${m21}p3"                              # dryrun
     else
-        mdadm --create /dev/md${nextmd} --level=1 --raid-devices=1\
-            --force /dev/"${m21}"p3
+        if ! mdadm --create /dev/md${nextmd} --level=1 --raid-devices=1\
+            --force /dev/"${m21}"p3; then
+            echo -e "\n${Error}ERROR 5${Off} Failed to create RAID!"
+            exit 1
+        fi
     fi
 fi
 
@@ -665,11 +688,12 @@ fi
 # Create a physical volume (PV) on the partition
 echo -e "\nCreating a physical volume (PV) on md$nextmd partition"
 if [[ $dryrun == "yes" ]]; then
-    #echo "pvcreate /dev/md$nextmd"                                 # dryrun
     echo "pvcreate -ff /dev/md$nextmd"                              # dryrun
 else
-    #pvcreate /dev/md$nextmd
-    pvcreate -ff /dev/md$nextmd
+    if ! pvcreate -ff /dev/md$nextmd ; then
+        echo -e "\n${Error}ERROR 5${Off} Failed to create physical volume!"
+        exit 1
+    fi
 fi
 
 # Create a volume group (VG)
@@ -677,7 +701,10 @@ echo -e "\nCreating a volume group (VG) on md$nextmd partition"
 if [[ $dryrun == "yes" ]]; then
     echo "vgcreate vg$nextmd /dev/md$nextmd"                        # dryrun
 else
-    vgcreate vg$nextmd /dev/md$nextmd
+    if ! vgcreate vg$nextmd /dev/md$nextmd ; then
+        echo -e "\n${Error}ERROR 5${Off} Failed to create volume group!"
+        exit 1
+    fi
 fi
 
 

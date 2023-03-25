@@ -1,3 +1,6 @@
+v1.1.7
+- Check for errors from synopartiton, mdadm, pvcreate and vgcreate so the script doesn't continue and appear to have succeeded.
+
 v1.1.6
 - Changed to use "pvcreate -ff" instead of "pvcreate" to prevent issues.
 - Minor bug fix in "download new version".

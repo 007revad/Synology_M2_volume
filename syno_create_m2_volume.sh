@@ -60,7 +60,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.1.5"
+scriptver="v1.1.6"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 
@@ -270,11 +270,11 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
                                     "downloaded /tmp/$script-$shorttag!"
                             fi
                             if [[ $delerr != 1 ]]; then
-                                echo -e "\n$tag and changes.txt are in "\
-                                    "${Cyan}$scriptpath/$script-$shorttag${Off}"
+                                echo -e "\n$tag and changes.txt downloaded to:"\
+                                    "$scriptpath"
                                 echo -e "${Cyan}Do you want to stop this script"\
                                     "so you can run the new one?${Off} [y/n]"
-                                read -r -t 30 reply
+                                read -r reply
                                 if [[ ${reply,,} == "y" ]]; then exit; fi
                             fi
                         fi

@@ -1,5 +1,5 @@
 v1.1.6
-- Added -ff option to pvcreate command to prevent issues.
+- Changed to use "pvcreate -ff" instead of "pvcreate" to prevent issues.
 - Minor bug fix in "download new version".
 
 v1.1.5

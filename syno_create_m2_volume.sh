@@ -60,7 +60,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.1.7"
+scriptver="v1.1.6"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 

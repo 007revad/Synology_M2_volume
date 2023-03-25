@@ -1,3 +1,12 @@
+v1.1.5
+- Added single progress bar for the resync progress.
+- Changed latest version check to download to /tmp and extract files to the script's location replacing the existing .sh and readme.txt files.
+- Added options:
+   -a, --all        List all M.2 drives even if detected as active
+   -s, --steps      Show the steps to do after running this script
+   -h, --help       Show this help message
+   -v, --version    Show the script version
+
 v1.1.4
 - Now only creates the RAID array and storage pool. Volume creation can now be done in DSM.
 - Because you now create the volume in DSM you can set the volume size.

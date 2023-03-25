@@ -1,3 +1,6 @@
+v1.1.6
+- Minor bug fix.
+
 v1.1.5
 - Added single line progress bar for the resync progress.
 - Changed latest version check to download to /tmp and extract files to the script's location replacing the existing .sh and readme.txt files.
@@ -14,8 +17,8 @@ v1.1.4
 - Added instructions to create the volume in DSM.
 
 v1.0.3
-Changed 'latest version check' to download to /tmp and extract files to the script's location.
+- Changed 'latest version check' to download to /tmp and extract files to the script's location.
 
 v1.0.2
-Initial release.
+- Initial release.
 

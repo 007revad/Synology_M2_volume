@@ -30,6 +30,14 @@ sudo -i /volume1/scripts/create_m2_volume.sh
 
 **Note:** Replace /volume1/scripts/ with the path to where the script is located.
 
+**Options:**
+```YAML
+  -a, --all        List all M.2 drives even if detected as active
+  -s, --steps      Show the steps to do after running this script
+  -h, --help       Show this help message
+  -v, --version    Show the script version
+```
+
 It also has a dry run mode so you can see what it would have done had you run it for real.
 
 <p align="center"><img src="/images/create-volume0.png"></p>

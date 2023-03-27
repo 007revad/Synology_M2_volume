@@ -1,3 +1,6 @@
+v1.1.8
+- Fixed "download new version" failing if script was run via symlink or ./<scriptname>
+
 v1.1.7
 - Check for errors from synopartiton, mdadm, pvcreate and vgcreate so the script doesn't continue and appear to have succeeded.
 

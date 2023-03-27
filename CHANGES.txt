@@ -1,3 +1,8 @@
+v1.2.9
+- Added support for RAID 5.
+- Added support for up to 4 NVMe drives.
+- Changed to not include already selected drives in the list of drive choices when selecting more drives.
+
 v1.1.8
 - Fixed "download new version" failing if script was run via symlink or ./<scriptname>
 

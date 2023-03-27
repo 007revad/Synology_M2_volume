@@ -11,6 +11,15 @@ This script will create the RAID and storage pool on your NVMe drive(s) for you 
 
 All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer some simple questions. Then reboot, go to Storage Manager, Online Assemable and Create Volume.
 
+**RAID levels supported:**
+
+| RAID Level  | Drives Required  |
+| ----------- |------------------|
+| Single      | 1 drive          |
+| RAID 0      | 2 or more drives |
+| RAID 1      | 2 or more drives |
+| RAID 5      | 3 or more drives |
+
 **Confirmed working on:**
 
 | Model        | DSM version              |
@@ -18,6 +27,7 @@ All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer som
 | DS1821+      | DSM 7.2-64213 Beta       |
 | DS1821+      | DSM 7.1 Update 4         |
 | DS1621+      | DSM 7.1.1-42962 Update 4 |
+| DS1520+      | DSM 7.1.1-42962 Update 4 |
 | DS920+       | DSM 7.1.1-42962 Update 1 |
 | DS920+       | DSM 7.2-64216 Beta       |
 | DS720+       | DSM 7.2 Beta             |
@@ -58,7 +68,8 @@ It also has a dry run mode so you can see what it would have done had you run it
       - Create an encryption password or enter your existing encryption password. 
     - Confirm your settings and click Apply to finish creating your M.2 volume.
 4. Optionally enable and schedule TRIM:
-    - Storage Pool > ... > Settings > SSD TRIM
+    - Storage Pool > ... > Settings > SSD TRIM    
+    - **Note: DSM 7.2 Beta has no SSD TRIM setting for M.2 RAID 0**
 
 <p align="center">Storage Pool available for online assembly</p>
 <p align="center"><img src="/images/create_m2_volume_available_pool.png"></p>

@@ -77,7 +77,7 @@ repo="007revad/Synology_M2_volume"
 
 # Shell Colors
 #Black='\e[0;30m'   # ${Black}
-Red='\e[0;31m'      # ${Cyan}
+Red='\e[0;31m'      # ${Red}
 #Green='\e[0;32m'   # ${Green}
 #Yellow='\e[0;33m'  # ${Yellow}
 #Blue='\e[0;34m'    # ${Blue}
@@ -126,13 +126,13 @@ showsteps(){
   3. Optionally enable TRIM:
        Storage Pool > ... > Settings > SSD TRIM
 EOF
+    echo -e "     ${Cyan}SSD TRIM option not available in DSM 7.2 Beta for RAID 0${Off}"
     else
         cat <<EOF
   1. After the restart go to Storage Manager and select online assemble:
        Storage Pool > Available Pool > Online Assemble
   2. Optionally enable TRIM:
        Storage Pool > ... > Settings > SSD TRIM
-       Not availabe in DSM 7.2 Beta for RAID 0
 EOF
     fi
     #return
@@ -440,32 +440,26 @@ if [[ ${#m2list[@]} == "0" ]]; then exit; fi
 if [[ ${#m2list[@]} -gt "1" ]]; then
     PS3="Select the RAID type: "
     if [[ ${#m2list[@]} -eq "2" ]]; then
-        #options=("Single" "RAID 0" "RAID 1" "Quit")
         options=("Single" "RAID 0" "RAID 1")
     elif [[ ${#m2list[@]} -gt "2" ]]; then
-        #options=("Single" "RAID 0" "RAID 1" "RAID 5" "Quit")
         options=("Single" "RAID 0" "RAID 1" "RAID 5")
     fi
     select raid in "${options[@]}"; do
       case "$raid" in
         "Single")
-          #echo -e "\nYou selected Single"  # debug
           raidtype="1"
           single="yes"
           break
           ;;
         "RAID 0")
-          #echo -e "\nYou selected RAID 0"  # debug
           raidtype="0"
           break
           ;;
         "RAID 1")
-          #echo -e "\nYou selected RAID 1"  # debug
           raidtype="1"
           break
           ;;
         "RAID 5")
-          #echo -e "\nYou selected RAID 5"  # debug
           raidtype="5"
           break
           ;;
@@ -477,7 +471,7 @@ if [[ ${#m2list[@]} -gt "1" ]]; then
           ;;
       esac
     done
-    echo "You selected RAID $raidtype"  # debug
+    echo -e "You selected ${Cyan}RAID $raidtype${Off}"
     echo
 elif [[ ${#m2list[@]} -eq "1" ]]; then
     raidtype="1"
@@ -501,26 +495,10 @@ getindex(){
 
 remelement(){
     # Remove selected drive from list of other selectable drives
-
-#echo                             # debug
-#echo "  arg[1] is: '$1'"         # debug
-#echo "  M.2 list: ${m2list[@]}"  # debug
-
     if [[ $1 ]]; then
-
-#echo "  '$1' exists"             # debug
-
         num="0"
         while [[ $num -lt "${#m2list[@]}" ]]; do
-
-#echo "while okay $num"            # debug
-#echo "'${m2list[num]}'  '$1'"     # debug
-
             if [[ ${m2list[num]} == "$1" ]]; then
-                
-                #echo "  unset: m2list[num]"     # debug
-                #echo "  unset: ${m2list[num]}"  # debug
-                
                 # Remove selected drive from m2list array
                 unset "m2list[num]"
 
@@ -530,19 +508,9 @@ remelement(){
                 done
                 m2list=("${tmp_array[@]}")
                 unset tmp_array
-
             fi
             num=$((num +1))
         done
-
-#echo "  Remaining drives: ${#m2list[@]}"  # debug
-#echo "  M.2 list: ${m2list[@]}"           # debug
-
-        # Contract array to remove indexes with no elements left after we unset elements 
-#        m2list+=( "${m2list[@]}" )
-
-#echo "  M.2 list: ${m2list[@]}"  # debug
-
     fi
 }
 
@@ -552,13 +520,10 @@ remelement(){
 
 if [[ $single == "yes" ]]; then
     PS3="Select the M.2 drive: "
-#elif [[ $raidtype == "0" ]] || [[ $raidtype == "1" ]]; then
 else
     PS3="Select the 1st M.2 drive: "
 fi
-#select nvmes in "${m2list[@]}" "Quit"; do
 select nvmes in "${m2list[@]}"; do
-    #qty="${#m2list[@]}"
     case "$nvmes" in
         nvme0n1)
             for i in "${!m2list[@]}"; do  # Get array index from element
@@ -606,8 +571,8 @@ if [[ $m21 ]]; then
     remelement "$m21"
     # Keep track of many drives user selected
     selected="$((selected +1))"
+    echo -e "You selected ${Cyan}$m21${Off}"
 
-    echo "You selected $m21"  # debug
     #echo "Drives selected: $selected"  # debug
 fi
 echo
@@ -619,61 +584,61 @@ echo
 if [[ $single != "yes" ]]; then
     if [[ $raidtype == "0" ]] || [[ $raidtype == "1" ]] || [[ $raidtype == "5" ]];
     then
-        PS3="Select the 2nd M.2 drive: "
-        #select nvmes in "${m2list[@]}" "Quit"; do
-        select nvmes in "${m2list[@]}"; do
-            case "$nvmes" in
-                nvme0n1)
-                    for i in "${!m2list[@]}"; do  # Get array index from element
-                        if [[ "${m2list[$i]}" == "nvme0n1" ]]; then
-                            m22="${m2list[i]}"
-                        fi
-                    done
-                    break
-                    ;;
-                nvme1n1)
-                    for i in "${!m2list[@]}"; do
-                        if [[ "${m2list[$i]}" == "nvme1n1" ]]; then
-                            m22="${m2list[i]}"
-                        fi
-                    done
-                    break
-                    ;;
-                nvme2n1)
-                    for i in "${!m2list[@]}"; do
-                        if [[ "${m2list[$i]}" == "nvme2n1" ]]; then
-                            m22="${m2list[i]}"
-                        fi
-                    done
-                    break
-                    ;;
-                nvme3n1)
-                    for i in "${!m2list[@]}"; do
-                        if [[ "${m2list[$i]}" == "nvme3n1" ]]; then
-                            m22="${m2list[i]}"
-                        fi
-                    done
-                    break
-                    ;;
-                Quit)
-                    exit
-                    ;;
-                *) 
-                    echo -e "${Red}Invalid answer${Off}! Try again."
-                    ;;
-            esac
-            echo -e "\nYou selected $m22"  # debug
-        done
-        if [[ $m22 ]]; then
-            # Remove selected drive from list of selectable drives
-            remelement "$m22"
-            # Keep track of many drives user selected
-            selected="$((selected +1))"
+        if [[ ${#m2list[@]} -gt "0" ]]; then
+            PS3="Select the 2nd M.2 drive: "
+            select nvmes in "${m2list[@]}"; do
+                case "$nvmes" in
+                    nvme0n1)
+                        for i in "${!m2list[@]}"; do  # Get array index from element
+                            if [[ "${m2list[$i]}" == "nvme0n1" ]]; then
+                                m22="${m2list[i]}"
+                            fi
+                        done
+                        break
+                        ;;
+                    nvme1n1)
+                        for i in "${!m2list[@]}"; do
+                            if [[ "${m2list[$i]}" == "nvme1n1" ]]; then
+                                m22="${m2list[i]}"
+                            fi
+                        done
+                        break
+                        ;;
+                    nvme2n1)
+                        for i in "${!m2list[@]}"; do
+                            if [[ "${m2list[$i]}" == "nvme2n1" ]]; then
+                                m22="${m2list[i]}"
+                            fi
+                        done
+                        break
+                        ;;
+                    nvme3n1)
+                        for i in "${!m2list[@]}"; do
+                            if [[ "${m2list[$i]}" == "nvme3n1" ]]; then
+                                m22="${m2list[i]}"
+                            fi
+                        done
+                        break
+                        ;;
+                    Quit)
+                        exit
+                        ;;
+                    *) 
+                        echo -e "${Red}Invalid answer!${Off} Try again."
+                        ;;
+                esac
+            done
+            if [[ $m22 ]]; then
+                # Remove selected drive from list of selectable drives
+                remelement "$m22"
+                # Keep track of many drives user selected
+                selected="$((selected +1))"
+                echo -e "You selected ${Cyan}$m22${Off}"
 
-            echo "You selected $m22"  # debug
-            #echo "Drives selected: $selected"  # debug
+                #echo "Drives selected: $selected"  # debug
+            fi
+            echo
         fi
-        echo
     fi
 fi
 
@@ -684,66 +649,65 @@ fi
 if [[ $single != "yes" ]] && [[ $Done != "yes" ]]; then
     if [[ $raidtype == "0" ]] || [[ $raidtype == "1" ]] || [[ $raidtype == "5" ]];
     then
-        PS3="Select the 3rd M.2 drive: "
-        #select nvmes in "${m2list[@]}" "Done" "Quit"; do
-        #select nvmes in "${m2list[@]}" "Done"; do
-        select nvmes in "${m2list[@]}"; do
-            case "$nvmes" in
-                nvme0n1)
-                    for i in "${!m2list[@]}"; do  # Get array index from element
-                        if [[ "${m2list[$i]}" == "nvme0n1" ]]; then
-                            m23="${m2list[i]}"
-                        fi
-                    done
-                    break
-                    ;;
-                nvme1n1)
-                    for i in "${!m2list[@]}"; do
-                        if [[ "${m2list[$i]}" == "nvme1n1" ]]; then
-                            m23="${m2list[i]}"
-                        fi
-                    done
-                    break
-                    ;;
-                nvme2n1)
-                    for i in "${!m2list[@]}"; do
-                        if [[ "${m2list[$i]}" == "nvme2n1" ]]; then
-                            m23="${m2list[i]}"
-                        fi
-                    done
-                    break
-                    ;;
-                nvme3n1)
-                    for i in "${!m2list[@]}"; do
-                        if [[ "${m2list[$i]}" == "nvme3n1" ]]; then
-                            m23="${m2list[i]}"
-                        fi
-                    done
-                    break
-                    ;;
-                Done)
-                    Done="yes"
-                    break
-                    ;;
-                Quit)
-                    exit
-                    ;;
-                *) 
-                    echo -e "${Red}Invalid answer${Off}! Try again."
-                    ;;
-            esac
-            echo -e "\nYou selected $m23"  # debug
-        done
-        if [[ $m23 ]]; then
-            # Remove selected drive from list of selectable drives
-            remelement "$m23"
-            # Keep track of many drives user selected
-            selected="$((selected +1))"
+        if [[ ${#m2list[@]} -gt "0" ]]; then
+            PS3="Select the 3rd M.2 drive: "
+            select nvmes in "${m2list[@]}" "Done"; do
+                case "$nvmes" in
+                    nvme0n1)
+                        for i in "${!m2list[@]}"; do  # Get array index from element
+                            if [[ "${m2list[$i]}" == "nvme0n1" ]]; then
+                                m23="${m2list[i]}"
+                            fi
+                        done
+                        break
+                        ;;
+                    nvme1n1)
+                        for i in "${!m2list[@]}"; do
+                            if [[ "${m2list[$i]}" == "nvme1n1" ]]; then
+                                m23="${m2list[i]}"
+                            fi
+                        done
+                        break
+                        ;;
+                    nvme2n1)
+                        for i in "${!m2list[@]}"; do
+                            if [[ "${m2list[$i]}" == "nvme2n1" ]]; then
+                                m23="${m2list[i]}"
+                            fi
+                        done
+                        break
+                        ;;
+                    nvme3n1)
+                        for i in "${!m2list[@]}"; do
+                            if [[ "${m2list[$i]}" == "nvme3n1" ]]; then
+                                m23="${m2list[i]}"
+                            fi
+                        done
+                        break
+                        ;;
+                    Done)
+                        Done="yes"
+                        break
+                        ;;
+                    Quit)
+                        exit
+                        ;;
+                    *) 
+                        echo -e "${Red}Invalid answer!${Off} Try again."
+                        ;;
+                esac
+            done
+            if [[ $m23 ]]; then
+                # Remove selected drive from list of selectable drives
+                remelement "$m23"
+                # Keep track of many drives user selected
+                selected="$((selected +1))"
+                echo -e "You selected ${Cyan}$m23${Off}"
 
-            echo "You selected $m23"  # debug
-            #echo "Drives selected: $selected"  # debug
+                #echo "Drives selected: $selected"  # debug
+            fi
+            echo
         fi
-        echo
     fi
 fi
 
@@ -754,65 +718,65 @@ fi
 if [[ $single != "yes" ]] && [[ $Done != "yes" ]]; then
     if [[ $raidtype == "0" ]] || [[ $raidtype == "1" ]] || [[ $raidtype == "5" ]];
     then
-        PS3="Select the 4th M.2 drive: "
-        #select nvmes in "${m2list[@]}" "Done" "Quit"; do
-        select nvmes in "${m2list[@]}" "Done"; do
-            case "$nvmes" in
-                nvme0n1)
-                    for i in "${!m2list[@]}"; do  # Get array index from element
-                        if [[ "${m2list[$i]}" == "nvme0n1" ]]; then
-                            m24="${m2list[i]}"
-                        fi
-                    done
-                    break
-                    ;;
-                nvme1n1)
-                    for i in "${!m2list[@]}"; do
-                        if [[ "${m2list[$i]}" == "nvme1n1" ]]; then
-                            m24="${m2list[i]}"
-                        fi
-                    done
-                    break
-                    ;;
-                nvme2n1)
-                    for i in "${!m2list[@]}"; do
-                        if [[ "${m2list[$i]}" == "nvme2n1" ]]; then
-                            m24="${m2list[i]}"
-                        fi
-                    done
-                    break
-                    ;;
-                nvme3n1)
-                    for i in "${!m2list[@]}"; do
-                        if [[ "${m2list[$i]}" == "nvme3n1" ]]; then
-                            m24="${m2list[i]}"
-                        fi
-                    done
-                    break
-                    ;;
-                Done)
-                    Done="yes"
-                    break
-                    ;;
-                Quit)
-                    exit
-                    ;;
-                *) 
-                    echo -e "${Red}Invalid answer${Off}! Try again."
-                    ;;
-            esac
-            echo -e "\nYou selected $m24"  # debug
-        done
-        if [[ $m24 ]]; then
-            # Remove selected drive from list of selectable drives
-            remelement "$m24"
-            # Keep track of many drives user selected
-            selected="$((selected +1))"
+        if [[ ${#m2list[@]} -gt "0" ]]; then
+            PS3="Select the 4th M.2 drive: "
+            select nvmes in "${m2list[@]}" "Done"; do
+                case "$nvmes" in
+                    nvme0n1)
+                        for i in "${!m2list[@]}"; do  # Get array index from element
+                            if [[ "${m2list[$i]}" == "nvme0n1" ]]; then
+                                m24="${m2list[i]}"
+                            fi
+                        done
+                        break
+                        ;;
+                    nvme1n1)
+                        for i in "${!m2list[@]}"; do
+                            if [[ "${m2list[$i]}" == "nvme1n1" ]]; then
+                                m24="${m2list[i]}"
+                            fi
+                        done
+                        break
+                        ;;
+                    nvme2n1)
+                        for i in "${!m2list[@]}"; do
+                            if [[ "${m2list[$i]}" == "nvme2n1" ]]; then
+                                m24="${m2list[i]}"
+                            fi
+                        done
+                        break
+                        ;;
+                    nvme3n1)
+                        for i in "${!m2list[@]}"; do
+                            if [[ "${m2list[$i]}" == "nvme3n1" ]]; then
+                                m24="${m2list[i]}"
+                            fi
+                        done
+                        break
+                        ;;
+                    Done)
+                        Done="yes"
+                        break
+                        ;;
+                    Quit)
+                        exit
+                        ;;
+                    *) 
+                        echo -e "${Red}Invalid answer!${Off} Try again."
+                        ;;
+                esac
+            done
+            if [[ $m24 ]]; then
+                # Remove selected drive from list of selectable drives
+                remelement "$m24"
+                # Keep track of many drives user selected
+                selected="$((selected +1))"
+                echo -e "You selected ${Cyan}$m24${Off}"  # debug
 
-            echo "You selected $m24"  # debug
-            #echo "Drives selected: $selected"  # debug
+                #echo "Drives selected: $selected"  # debug
+            fi
+            echo
         fi
-        echo
     fi
 fi
 
@@ -862,7 +826,7 @@ if [[ ${answer,,} != "yes" ]]; then exit; fi
 
 
 # Abandon hope, all ye who enter here :)
-echo -e "You chose to continue. You are brave! :)\n"  # debug
+echo -e "You chose to continue. You are brave! :)\n"
 sleep 3
 
 
@@ -872,7 +836,7 @@ sleep 3
 # Using "md[0-9]{1,2}" to avoid md126 and md127 etc
 lastmd=$(grep -oP "md[0-9]{1,2}" "/proc/mdstat" | sort | tail -1)
 nextmd=$(("${lastmd:2}" +1))
-echo "Using md$nextmd as it's the next available."  # debug
+echo "Using md$nextmd as it's the next available."
 
 
 #--------------------------------------------------------------------
@@ -974,7 +938,7 @@ else
     echo -e "\nCreating single drive RAID."
     if [[ $dryrun == "yes" ]]; then
         echo "mdadm --create /dev/md${nextmd} --level=1 --raid-devices=1"\
-            "--force /dev/${m21}p3"                              # dryrun
+            "--force /dev/${m21}p3"                                    # dryrun
     else
         if ! mdadm --create /dev/md${nextmd} --level=1 --raid-devices=1\
             --force /dev/"${m21}"p3; then
@@ -985,15 +949,23 @@ else
 fi
 
 # Show resync progress every 5 seconds
-while grep resync /proc/mdstat >/dev/null; do
-    # Only multi-drive RAID gets re-synced
-    progress="$(grep -E -A 2 active.*nvme /proc/mdstat | grep resync | cut -d\( -f1 )"
-    echo -ne "$progress\r"
-    sleep 5
-done
-# Show 100% progress
-if [[ $progress ]]; then
-    echo -ne "      [=====================]  resync = 100%\r"
+if [[ $dryrun == "yes" ]]; then
+    echo -ne "      [====>................]  resync = 20%\r"; sleep 1  # dryrun
+    echo -ne "      [========>............]  resync = 40%\r"; sleep 1  # dryrun
+    echo -ne "      [============>........]  resync = 60%\r"; sleep 1  # dryrun
+    echo -ne "      [================>....]  resync = 80%\r"; sleep 1  # dryrun
+    echo -ne "      [====================>]  resync = 100%\r\n"        # dryrun
+else
+    while grep resync /proc/mdstat >/dev/null; do
+        # Only multi-drive RAID gets re-synced
+        progress="$(grep -E -A 2 active.*nvme /proc/mdstat | grep resync | cut -d\( -f1 )"
+        echo -ne "$progress\r"
+        sleep 5
+    done
+    # Show 100% progress
+    if [[ $progress ]]; then
+        echo -ne "      [====================>]  resync = 100%\r"
+    fi
 fi
 
 
@@ -1091,5 +1063,5 @@ else
 fi
 
 
-#exit  # Don't exit so user can DSM's "shutting down" message
+#exit  # Don't exit so user can see DSM's "going down" message
 

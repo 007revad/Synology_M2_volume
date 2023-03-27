@@ -27,6 +27,8 @@
 # Add option to repair damaged array.
 
 # DONE
+# Fixed "download new version" failing if script was run via symlink or ./<scriptname>
+#
 # Check for errors from synopartiton, mdadm, pvcreate and vgcreate 
 #   so the script doesn't continue and appear to have succeeded.
 #
@@ -65,7 +67,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.1.7"
+scriptver="v1.1.8"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 
@@ -226,7 +228,20 @@ get_latest_release() {
 
 tag=$(get_latest_release "$repo")
 shorttag="${tag:1}"
-scriptpath=$(dirname -- "$0")
+#scriptpath=$(dirname -- "$0")
+
+# Get script location
+source=${BASH_SOURCE[0]}
+while [ -L "$source" ]; do # Resolve $source until the file is no longer a symlink
+    scriptpath=$( cd -P "$( dirname "$source" )" >/dev/null 2>&1 && pwd )
+    source=$(readlink "$source")
+    # If $source was a relative symlink, we need to resolve it 
+    # relative to the path where the symlink file was located
+    [[ $source != /* ]] && source=$scriptpath/$source
+done
+scriptpath=$( cd -P "$( dirname "$source" )" >/dev/null 2>&1 && pwd )
+#echo "Script location: $scriptpath"  # debug
+
 
 if ! printf "%s\n%s\n" "$tag" "$scriptver" |
         sort --check --version-sort &> /dev/null ; then
@@ -252,15 +267,38 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
                         "$script-$shorttag.tar.gz!"
                 else
                     if [[ -f /tmp/$script-$shorttag.tar.gz ]]; then
-                        # Extract tar file to script location
-                        if ! tar -xf "/tmp/$script-$shorttag.tar.gz" -C "/tmp"; 
-                        then
+                        # Extract tar file to /tmp/<script-name>
+                        if ! tar -xf "/tmp/$script-$shorttag.tar.gz" -C "/tmp"; then
                             echo -e "${Error}ERROR ${Off} Failed to"\
                                 "extract $script-$shorttag.tar.gz!"
                         else
-                            # Copy new files to script location
-                            cp "/tmp/$script-$shorttag/CHANGES.txt" "$scriptpath"
-                            cp "/tmp/$script-$shorttag/"*.sh "$scriptpath"
+                            # Copy new script sh files to script location
+                            if ! cp -p "/tmp/$script-$shorttag/"*.sh "$scriptpath"; then
+                                copyerr=1
+                                echo -e "${Error}ERROR ${Off} Failed to copy"\
+                                    "$script-$shorttag .sh file(s) to:\n $scriptpath"
+                            else                   
+                                # Set permsissions on CHANGES.txt
+                                if ! chmod 744 "$scriptpath/"*.sh ; then
+                                    permerr=1
+                                    echo -e "${Error}ERROR ${Off} Failed to set permissions on:"
+                                    echo "$scriptpath *.sh file(s)"
+                                fi
+                            fi
+
+                            # Copy new CHANGES.txt file to script location
+                            if ! cp -p "/tmp/$script-$shorttag/CHANGES.txt" "$scriptpath"; then
+                                copyerr=1
+                                echo -e "${Error}ERROR ${Off} Failed to copy"\
+                                    "$script-$shorttag/CHANGES.txt to:\n $scriptpath"
+                            else                   
+                                # Set permsissions on CHANGES.txt
+                                if ! chmod 744 "$scriptpath/CHANGES.txt"; then
+                                    permerr=1
+                                    echo -e "${Error}ERROR ${Off} Failed to set permissions on:"
+                                    echo "$scriptpath/CHANGES.txt"
+                                fi
+                            fi
 
                             # Delete downloaded .tar.gz file
                             if ! rm "/tmp/$script-$shorttag.tar.gz"; then
@@ -268,13 +306,16 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
                                 echo -e "${Error}ERROR ${Off} Failed to delete"\
                                     "downloaded /tmp/$script-$shorttag.tar.gz!"
                             fi
+
                             # Delete extracted tmp files
                             if ! rm -r "/tmp/$script-$shorttag"; then
                                 delerr=1
                                 echo -e "${Error}ERROR ${Off} Failed to delete"\
                                     "downloaded /tmp/$script-$shorttag!"
                             fi
-                            if [[ $delerr != 1 ]]; then
+
+                            # Notify of success (if there were no errors)
+                            if [[ $copyerr != 1 ]] && [[ $permerr != 1 ]]; then
                                 echo -e "\n$tag and changes.txt downloaded to:"\
                                     "$scriptpath"
                                 echo -e "${Cyan}Do you want to stop this script"\

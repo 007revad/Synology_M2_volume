@@ -22,16 +22,18 @@ All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer som
 
 **Confirmed working on:**
 
-| Model        | DSM version              |
-| ------------ |--------------------------|
-| DS1821+      | DSM 7.2-64213 Beta       |
-| DS1821+      | DSM 7.1 Update 4         |
-| DS1621+      | DSM 7.1.1-42962 Update 4 |
-| DS1520+      | DSM 7.1.1-42962 Update 4 |
-| DS920+       | DSM 7.1.1-42962 Update 1 |
-| DS920+       | DSM 7.2-64216 Beta       |
-| DS720+       | DSM 7.2 Beta             |
-| DS918+       | DSM 7.1.1                |
+| Model        | DSM version              | M.2 card |
+| ------------ |--------------------------|----------|
+| DS1821+      | DSM 7.2-64213 Beta       |          |
+| DS1821+      | DSM 7.1 Update 4         |          |
+| DS1621+      | DSM 7.1.1-42962 Update 4 |          |
+| DS1520+      | DSM 7.1.1-42962 Update 4 |          |
+| DS920+       | DSM 7.1.1-42962 Update 1 |          |
+| DS920+       | DSM 7.2-64216 Beta       |          |
+| DS720+       | DSM 7.2 Beta             |          |
+| DS1819+      | DSM 7.1.1                | M2D20    |
+| DS1819+      | DSM 7.2 Beta             | M2D20    |
+| DS918+       | DSM 7.1.1                |          |
 
 ### To run the script ###
 

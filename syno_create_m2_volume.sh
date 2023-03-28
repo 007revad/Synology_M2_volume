@@ -69,7 +69,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.2.9"
+scriptver="v1.2.10"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 
@@ -471,7 +471,11 @@ if [[ ${#m2list[@]} -gt "1" ]]; then
           ;;
       esac
     done
-    echo -e "You selected ${Cyan}RAID $raidtype${Off}"
+    if [[ $single == "yes" ]]; then
+        echo -e "You selected ${Cyan}Single${Off}"
+    else
+        echo -e "You selected ${Cyan}RAID $raidtype${Off}"
+    fi
     echo
 elif [[ ${#m2list[@]} -eq "1" ]]; then
     raidtype="1"
@@ -650,8 +654,15 @@ if [[ $single != "yes" ]] && [[ $Done != "yes" ]]; then
     if [[ $raidtype == "0" ]] || [[ $raidtype == "1" ]] || [[ $raidtype == "5" ]];
     then
         if [[ ${#m2list[@]} -gt "0" ]]; then
+            #tmplist="${m2list[@]}"
+            for i in "${!m2list[@]}"; do
+                tmplist+=( "${m2list[i]}" )
+            done
+            if [[ $raidtype != "5" ]]; then
+                tmplist+=("Done")  
+            fi
             PS3="Select the 3rd M.2 drive: "
-            select nvmes in "${m2list[@]}" "Done"; do
+            select nvmes in "${tmplist[@]}"; do
                 case "$nvmes" in
                     nvme0n1)
                         for i in "${!m2list[@]}"; do  # Get array index from element
@@ -786,8 +797,8 @@ fi
 
  if [[ $raidtype == "5" ]]; then
     if [[ $selected -lt "3" ]]; then
-        echo -e "Drives selected: $selected"
-        echo "You need to select 3 or more drives for RAID 5"
+        echo "Drives selected: $selected"
+        echo -e "${Error}ERROR${Off} You need to select 3 or more drives for RAID 5"
         exit
     fi
  fi

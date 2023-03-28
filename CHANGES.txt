@@ -1,3 +1,7 @@
+v1.2.10
+- Changed to show "You selected Single" instead of RAID 1 when selecting Single.
+- Changed so when RAID 5 was selected the Done option doesn't appear until the "Select 4th drive" option appears (if you have 4 M.2 drives).
+
 v1.2.9
 - Added support for RAID 5.
 - Added support for up to 4 NVMe drives.

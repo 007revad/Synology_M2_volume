@@ -24,6 +24,8 @@ All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer som
 
 | Model        | DSM version              | M.2 card |
 | ------------ |--------------------------|----------|
+| DS723+       | DSM 7.1.1-42962 Update 4 |          |
+| DS3622xs+    | DSM 7.1.1-42962 Update 1 |          |
 | DS1821+      | DSM 7.2-64213 Beta       |          |
 | DS1821+      | DSM 7.1 Update 4         |          |
 | DS1621+      | DSM 7.1.1-42962 Update 4 |          |

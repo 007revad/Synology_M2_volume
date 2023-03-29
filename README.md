@@ -74,7 +74,7 @@ It also has a dry run mode so you can see what it would have done had you run it
 4. Optionally enable and schedule TRIM:
     - Storage Pool > ... > Settings > SSD TRIM    
     - **Note: DSM 7.1.1. has no SSD TRIM setting for M.2 storage pools**
-    - **Note: DSM 7.2 Beta has no SSD TRIM setting for M.2 RAID 0**
+    - **Note: DSM 7.2 Beta has no SSD TRIM setting for M.2 RAID 0 or RAID 5**
 
 <p align="center">Storage Pool available for online assembly</p>
 <p align="center"><img src="/images/create_m2_volume_available_pool.png"></p>

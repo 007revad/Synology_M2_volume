@@ -126,7 +126,7 @@ showsteps(){
   3. Optionally enable TRIM:
        Storage Pool > ... > Settings > SSD TRIM
 EOF
-    echo -e "     ${Cyan}SSD TRIM option not available in DSM 7.2 Beta for RAID 0${Off}"
+    echo -e "     ${Cyan}SSD TRIM option is only available in DSM 7.2 Beta for RAID 1${Off}"
     else
         cat <<EOF
   1. After the restart go to Storage Manager and select online assemble:

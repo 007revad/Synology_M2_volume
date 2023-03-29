@@ -1,3 +1,6 @@
+v1.2.11
+- Changed "remaining steps" message because DSM 7.1.1 has no TRIM option, even for RAID 1.
+
 v1.2.10
 - Changed to show "You selected Single" instead of RAID 1 when selecting Single.
 - Changed so when RAID 5 was selected the Done option doesn't appear until the "Select 4th drive" option appears (if you have 4 M.2 drives).

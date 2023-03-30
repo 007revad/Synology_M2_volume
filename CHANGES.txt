@@ -1,5 +1,7 @@
 v1.2.11
 - Changed "remaining steps" message because DSM 7.1.1 has no TRIM option, even for RAID 1.
+- Added check that next md number was found.
+- Bug fix for DSM 6.2.4 not finding next md number.
 
 v1.2.10
 - Changed to show "You selected Single" instead of RAID 1 when selecting Single.

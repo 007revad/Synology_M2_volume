@@ -429,7 +429,7 @@ fi                              # test
 echo -e "Unused M.2 drives found: ${#m2list[@]}\n"
 
 #echo -e "NVMe list: ${m2list[@]}\n"  # debug
-#echo -e "NVMe qty: ${#m2list[@]}\n"    # debug
+#echo -e "NVMe qty: ${#m2list[@]}\n"  # debug
 
 if [[ ${#m2list[@]} == "0" ]]; then exit; fi
 

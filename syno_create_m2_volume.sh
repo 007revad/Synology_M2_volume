@@ -846,7 +846,7 @@ sleep 3
 
 # Using "md[0-9]{1,2}" to avoid md126 and md127 etc
 lastmd=$(grep -oP "md[0-9]{1,2}" "/proc/mdstat" | sort | tail -1)
-nextmd=$(("${lastmd:2}" +1))
+nextmd=$((${lastmd:2} +1))
 echo "Using md$nextmd as it's the next available."
 
 

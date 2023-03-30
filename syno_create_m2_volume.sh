@@ -429,7 +429,7 @@ fi                              # test
 echo -e "Unused M.2 drives found: ${#m2list[@]}\n"
 
 #echo -e "NVMe list: ${m2list[@]}\n"  # debug
-#echo -e "NVMe qty: ${#m2list[@]}\n"    # debug
+#echo -e "NVMe qty: ${#m2list[@]}\n"  # debug
 
 if [[ ${#m2list[@]} == "0" ]]; then exit; fi
 
@@ -846,8 +846,13 @@ sleep 3
 
 # Using "md[0-9]{1,2}" to avoid md126 and md127 etc
 lastmd=$(grep -oP "md[0-9]{1,2}" "/proc/mdstat" | sort | tail -1)
-nextmd=$(("${lastmd:2}" +1))
-echo "Using md$nextmd as it's the next available."
+nextmd=$((${lastmd:2} +1))
+if [[ -z $nextmd ]]; then
+    echo -e "${Error}ERROR${Off} Next md number not found!"
+    exit 1
+else
+    echo "Using md$nextmd as it's the next available."
+fi
 
 
 #--------------------------------------------------------------------

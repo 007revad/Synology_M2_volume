@@ -40,7 +40,7 @@ All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer som
 ### To run the script ###
 
 ```YAML
-sudo -i /volume1/scripts/create_m2_volume.sh
+sudo -i /volume1/scripts/syno_create_m2_volume.sh
 ```
 
 **Note:** Replace /volume1/scripts/ with the path to where the script is located.

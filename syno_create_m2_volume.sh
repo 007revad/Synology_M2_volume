@@ -69,7 +69,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.2.11"
+scriptver="v1.2.12"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 
@@ -114,7 +114,7 @@ EOF
 
 
 showsteps(){
-    echo -e "${Cyan}Steps you need to do after running this script:${Off}"
+    echo -e "\n${Cyan}Steps you need to do after running this script:${Off}"
     major=$(get_key_value /etc.defaults/VERSION major)
     minor=$(get_key_value /etc.defaults/VERSION major)
     if [[ $major -gt "6" ]]; then
@@ -135,6 +135,13 @@ EOF
        Storage Pool > ... > Settings > SSD TRIM
 EOF
     fi
+    echo -e "\n${Error}Important${Off}"
+    cat <<EOF
+If you later upgrade DSM and your M.2 drives are shown as unsupported
+and the storage pool is shown as missing, and online assemble fails, 
+you should run the Synology HDD db script:
+EOF
+    echo -e "${Cyan}https://github.com/007revad/Synology_HDD_db${Off}\n"
     #return
 }
 
@@ -208,10 +215,12 @@ model=$(cat /proc/sys/kernel/syno_hw_version)
 productversion=$(get_key_value /etc.defaults/VERSION productversion)
 buildphase=$(get_key_value /etc.defaults/VERSION buildphase)
 buildnumber=$(get_key_value /etc.defaults/VERSION buildnumber)
+smallfixnumber=$(get_key_value /etc.defaults/VERSION smallfixnumber)
 
 # Show DSM full version and model
 if [[ $buildphase == GM ]]; then buildphase=""; fi
-echo -e "$model DSM $productversion-$buildnumber $buildphase\n"
+if [[ $smallfixnumber -gt "0" ]]; then smallfix="-$smallfixnumber"; fi
+echo -e "$model DSM $productversion-$buildnumber$smallfix $buildphase\n"
 
 
 echo -e "Type ${Cyan}yes${Off} to continue."\
@@ -461,6 +470,16 @@ if [[ ${#m2list[@]} -gt "1" ]]; then
           ;;
         "RAID 5")
           raidtype="5"
+          break
+          ;;
+        "RAID 6")
+          #echo -e "\nYou selected RAID 6"  # debug
+          raidtype="6"
+          break
+          ;;
+        "RAID 10")
+          #echo -e "\nYou selected RAID 10"  # debug
+          raidtype="10"
           break
           ;;
         Quit)

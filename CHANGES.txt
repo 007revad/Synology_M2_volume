@@ -1,3 +1,7 @@
+v1.2.12
+- Added a warning that if you later upgrade DSM and your M.2 drives are shown as unsupported and the
+  storage pool is shown as missing, and online assemble fails, you should run the Synology_HDD_db script.
+
 v1.2.11
 - Changed "remaining steps" message because DSM 7.1.1 has no TRIM option, even for RAID 1.
 - Added check that next md number was found.

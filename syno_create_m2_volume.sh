@@ -69,7 +69,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.2.12"
+scriptver="v1.2.13"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 
@@ -182,12 +182,14 @@ if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -a \
                 break
                 ;;
             *)                  # Show usage options
-                echo "Invalid option '$1'"
+                echo -e "Invalid option '$1'\n"
                 usage "$1"
                 ;;
         esac
         shift
     done
+else
+    usage
 fi
 
 

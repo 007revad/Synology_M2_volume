@@ -1,3 +1,6 @@
+v1.3.13
+- Added DSM 6 support.
+
 v1.2.12
 - Added a warning that if you later upgrade DSM and your M.2 drives are shown as unsupported and the
   storage pool is shown as missing, and online assemble fails, you should run the Synology_HDD_db script.

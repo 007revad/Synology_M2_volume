@@ -1,6 +1,3 @@
-v1.2.13
-- Changed to show usage if invalid long option used instead of continuing.
-
 v1.2.12
 - Added a warning that if you later upgrade DSM and your M.2 drives are shown as unsupported and the
   storage pool is shown as missing, and online assemble fails, you should run the Synology_HDD_db script.

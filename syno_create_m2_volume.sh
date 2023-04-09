@@ -71,7 +71,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.3.12"
+scriptver="v1.4.13"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 
@@ -139,6 +139,10 @@ EOF
     fi
     #return
 }
+
+
+# Save options used
+args="$@"
 
 
 # Check for flags with getopt
@@ -222,6 +226,9 @@ smallfixnumber=$(get_key_value /etc.defaults/VERSION smallfixnumber)
 if [[ $buildphase == GM ]]; then buildphase=""; fi
 if [[ $smallfixnumber -gt "0" ]]; then smallfix="-$smallfixnumber"; fi
 echo -e "$model DSM $productversion-$buildnumber$smallfix $buildphase\n"
+
+# Show options used
+echo "Using options: $args"
 
 
 echo -e "Type ${Cyan}yes${Off} to continue."\

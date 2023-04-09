@@ -1,5 +1,6 @@
-v1.3.13
+v1.3.14
 - Added DSM 6 support.
+- Show the options used.
 
 v1.2.12
 - Added a warning that if you later upgrade DSM and your M.2 drives are shown as unsupported and the

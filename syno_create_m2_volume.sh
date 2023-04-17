@@ -26,6 +26,8 @@
 # Add option to repair damaged array? DSM can probably handle this.
 
 # DONE
+# Added DSM 6 support (WIP)
+#
 # Added support for RAID 5
 # Changed to not include the 1st selected drive in the choices for 2nd drive etc.
 #
@@ -116,7 +118,7 @@ EOF
 showsteps(){
     echo -e "\n${Cyan}Steps you need to do after running this script:${Off}"
     major=$(get_key_value /etc.defaults/VERSION major)
-    minor=$(get_key_value /etc.defaults/VERSION major)
+    minor=$(get_key_value /etc.defaults/VERSION minor)
     if [[ $major -gt "6" ]]; then
         cat <<EOF
   1. After the restart go to Storage Manager and select online assemble:
@@ -127,14 +129,6 @@ showsteps(){
        Storage Pool > ... > Settings > SSD TRIM
 EOF
     echo -e "     ${Cyan}SSD TRIM option is only available in DSM 7.2 Beta for RAID 1${Off}"
-    else
-        cat <<EOF
-  1. After the restart go to Storage Manager and select online assemble:
-       Storage Pool > Available Pool > Online Assemble
-  2. Optionally enable TRIM:
-       Storage Pool > ... > Settings > SSD TRIM
-EOF
-    fi
     echo -e "\n${Error}Important${Off}"
     cat <<EOF
 If you later upgrade DSM and your M.2 drives are shown as unsupported
@@ -142,8 +136,13 @@ and the storage pool is shown as missing, and online assemble fails,
 you should run the Synology HDD db script:
 EOF
     echo -e "${Cyan}https://github.com/007revad/Synology_HDD_db${Off}\n"
+    fi
     #return
 }
+
+
+# Save options used
+args="$@"
 
 
 # Check for flags with getopt
@@ -210,6 +209,9 @@ dsminor=$(get_key_value /etc.defaults/VERSION minorversion)
 if [[ $dsm -gt "6" ]] && [[ $dsminor -gt "1" ]]; then
     dsm72="yes"
 fi
+if [[ $dsm -gt "6" ]] && [[ $dsminor -gt "0" ]]; then
+    dsm71="yes"
+fi
 
 # Get NAS model
 model=$(cat /proc/sys/kernel/syno_hw_version)
@@ -224,6 +226,9 @@ smallfixnumber=$(get_key_value /etc.defaults/VERSION smallfixnumber)
 if [[ $buildphase == GM ]]; then buildphase=""; fi
 if [[ $smallfixnumber -gt "0" ]]; then smallfix="-$smallfixnumber"; fi
 echo -e "$model DSM $productversion-$buildnumber$smallfix $buildphase\n"
+
+# Show options used
+echo "Using options: $args"
 
 
 echo -e "Type ${Cyan}yes${Off} to continue."\
@@ -827,21 +832,51 @@ fi
 
 
 #--------------------------------------------------------------------
+# Select file system - only DSM 6.2.4 and lower ###################################################
+
+if [[ $dsm == "6" ]]; then
+    PS3="Select the file system: "
+    select filesys in "btrfs" "ext4"; do
+        case "$filesys" in
+            btrfs)
+                echo -e "You selected ${Cyan}btrfs${Off}"  # debug
+                format="btrfs"
+                break
+                ;;
+            ext4)
+                echo -e "You selected ${Cyan}ext4${Off}"  # debug
+                format="ext4"
+                break
+                ;;
+            *) 
+                echo -e "${Red}Invalid answer${Off}! Try again."
+                ;;
+        esac
+    done
+    #echo
+fi
+
+
+#--------------------------------------------------------------------
 # Let user confirm their choices
 
+if [[ $format == "btrfs" ]] || [[ $format == "ext4" ]]; then
+    formatshow="$format "
+fi
+
 if [[ $selected == "4" ]]; then
-    echo -e "Ready to create ${Cyan}RAID $raidtype${Off} volume"\
+    echo -e "Ready to create ${Cyan}${formatshow}RAID $raidtype${Off} volume"\
         "group using ${Cyan}$m21${Off}, ${Cyan}$m22${Off},"\
             "${Cyan}$m23${Off} and ${Cyan}$m24${Off}"
 elif [[ $selected == "3" ]]; then
-    echo -e "Ready to create ${Cyan}RAID $raidtype${Off} volume"\
+    echo -e "Ready to create ${Cyan}${formatshow}RAID $raidtype${Off} volume"\
         "group using ${Cyan}$m21${Off}, ${Cyan}$m22${Off}"\
             "and ${Cyan}$m23${Off}"
 elif [[ $selected == "2" ]]; then
-    echo -e "Ready to create ${Cyan}RAID $raidtype${Off} volume"\
+    echo -e "Ready to create ${Cyan}${formatshow}RAID $raidtype${Off} volume"\
         "group using ${Cyan}$m21${Off} and ${Cyan}$m22${Off}"
 else
-    echo -e "Ready to create volume group on ${Cyan}$m21${Off}"
+    echo -e "Ready to create ${formatshow}volume group on ${Cyan}$m21${Off}"
 fi
 
 if [[ $haspartitons == "yes" ]]; then
@@ -1008,36 +1043,71 @@ fi
 
 
 #--------------------------------------------------------------------
-# Create Physical Volume and Volume Group with LVM
+# Create Physical Volume and Volume Group with LVM - DSM 7 only
 
 # Create a physical volume (PV) on the partition
-echo -e "\nCreating a physical volume (PV) on md$nextmd partition"
-if [[ $dryrun == "yes" ]]; then
-    echo "pvcreate -ff /dev/md$nextmd"                              # dryrun
-else
-    if ! pvcreate -ff /dev/md$nextmd ; then
-        echo -e "\n${Error}ERROR 5${Off} Failed to create physical volume!"
-        exit 1
+if [[ $dsm -gt "6" ]]; then
+    echo -e "\nCreating a physical volume (PV) on md$nextmd partition"
+    if [[ $dryrun == "yes" ]]; then
+        echo "pvcreate -ff /dev/md$nextmd"                              # dryrun
+    else
+        if ! pvcreate -ff /dev/md$nextmd ; then
+            echo -e "\n${Error}ERROR 5${Off} Failed to create physical volume!"
+            exit 1
+        fi
     fi
 fi
 
 # Create a volume group (VG)
-echo -e "\nCreating a volume group (VG) on md$nextmd partition"
-if [[ $dryrun == "yes" ]]; then
-    echo "vgcreate vg$nextmd /dev/md$nextmd"                        # dryrun
-else
-    if ! vgcreate vg$nextmd /dev/md$nextmd ; then
-        echo -e "\n${Error}ERROR 5${Off} Failed to create volume group!"
-        exit 1
+if [[ $dsm -gt "6" ]]; then
+    echo -e "\nCreating a volume group (VG) on md$nextmd partition"
+    if [[ $dryrun == "yes" ]]; then
+        echo "vgcreate vg$nextmd /dev/md$nextmd"                        # dryrun
+    else
+        if ! vgcreate vg$nextmd /dev/md$nextmd ; then
+            echo -e "\n${Error}ERROR 5${Off} Failed to create volume group!"
+            exit 1
+        fi
     fi
 fi
 
 
 #--------------------------------------------------------------------
-# Enable m2 volume support - DSM 7.2 and later only
+# Format array - only DSM 6.2.4 and lower #########################################################
+
+if [[ $dsm == "6" ]]; then
+    if [[ $format == "btrfs" ]]; then
+        if [[ $dryrun == "yes" ]]; then
+            echo "echo 0 > /sys/block/md${nextmd}/queue/rotational"  # dryrun
+            echo "mkfs.btrfs -f /dev/md${nextmd}"                    # dryrun
+        else
+            # Ensure mkfs.btrfs sees raid as SSD and optimises file system for SSD
+            echo 0 > /sys/block/md${nextmd}/queue/rotational
+            # Format nvme#np2
+            mkfs.btrfs -f /dev/md${nextmd}
+        fi
+    elif [[ $format == "ext4" ]]; then
+        if [[ $dryrun == "yes" ]]; then
+            echo "echo 0 > /sys/block/md${nextmd}/queue/rotational"  # dryrun
+            echo "mkfs.ext4 -f /dev/md${nextmd}"                     # dryrun
+        else
+            # Ensure mkfs.ext4 sees raid as SSD and optimises file system for SSD
+            echo 0 > /sys/block/md${nextmd}/queue/rotational  # Is this valid for mkfs.ext4 ?
+            # Format nvme#np2
+            mkfs.ext4 -F /dev/md${nextmd}
+        fi
+    else
+        echo "What file system did you select!?"; exit
+    fi
+fi
+
+
+#--------------------------------------------------------------------
+# Enable m2 volume support - DSM 7.1 and later only
 
 # Backup synoinfo.conf if needed
-if [[ $dsm72 == "yes" ]]; then
+#if [[ $dsm72 == "yes" ]]; then
+if [[ $dsm71 == "yes" ]]; then
     synoinfo="/etc.defaults/synoinfo.conf"
     if [[ ! -f ${synoinfo}.bak ]]; then
         if cp "$synoinfo" "$synoinfo.bak"; then
@@ -1050,16 +1120,17 @@ if [[ $dsm72 == "yes" ]]; then
 fi
 
 # Check if m2 volume support is enabled
-if [[ $dsm72 == "yes" ]]; then
+#if [[ $dsm72 == "yes" ]]; then
+if [[ $dsm71 == "yes" ]]; then
     smp=support_m2_pool
     setting="$(get_key_value "$synoinfo" "$smp")"
     enabled=""
     if [[ ! $setting ]]; then
-        # Add support_m2_pool"yes"
+        # Add support_m2_pool="yes"
         echo 'support_m2_pool="yes"' >> "$synoinfo"
         enabled="yes"
     elif [[ $setting == "no" ]]; then
-        # Change support_m2_pool"no" to "yes"
+        # Change support_m2_pool="no" to "yes"
         sed -i "s/${smp}=\"no\"/${smp}=\"yes\"/" "$synoinfo"
         enabled="yes"
     elif [[ $setting == "yes" ]]; then

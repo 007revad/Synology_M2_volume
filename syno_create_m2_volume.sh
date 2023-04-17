@@ -26,7 +26,7 @@
 # Add option to repair damaged array? DSM can probably handle this.
 
 # DONE
-# Added DSM 6 support
+# Added DSM 6 support (WIP)
 #
 # Added support for RAID 5
 # Changed to not include the 1st selected drive in the choices for 2nd drive etc.
@@ -71,7 +71,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.3.13"
+scriptver="v1.2.13"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 

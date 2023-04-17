@@ -189,6 +189,7 @@ if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -a \
         shift
     done
 else
+    echo
     usage
 fi
 

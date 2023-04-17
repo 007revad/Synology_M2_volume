@@ -1,5 +1,4 @@
-v1.3.13
-- Added DSM 6 support.
+v1.2.13
 - Changed to show usage if invalid long option used instead of continuing.
 - Show the options used.
 

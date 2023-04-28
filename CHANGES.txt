@@ -1,3 +1,7 @@
+v1.2.14
+- Prevent running with "sh scriptname.sh".
+- Added DS923+ to readme.
+
 v1.2.13
 - Changed to show usage if invalid long option used instead of continuing.
 - Show the options used.

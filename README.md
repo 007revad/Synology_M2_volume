@@ -8,7 +8,8 @@
 
 Easily create an M.2 volume on Synology NAS without a lot of typing and no need for any how-to guides. And you ***don't*** need Synology branded NVMe drives.
 
-This script will create the RAID and storage pool on your NVMe drive(s) for you so you can then create the volume in the DSM GUI.
+- DSM 7.x this script will create the RAID and storage pool on your NVMe drive(s) for you so you can then create the volume in the DSM GUI.
+- DSM 6.x this script will create the RAID, storage pool and volume on your NVMe drive(s) for you so you.
 
 All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer some simple questions. Then reboot, go to Storage Manager, Online Assemable and Create Volume.
 
@@ -34,6 +35,7 @@ All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer som
 | DS1821+      | DSM 7.2-64216 Beta       |           |
 | DS1821+      | DSM 7.2-64213 Beta       |           |
 | DS1821+      | DSM 7.1.1-42962 Update 4 |           |
+| DS1821+      | **DSM 6.2.4**-25556 Update 7 |           |
 | DS1621+      | DSM 7.1.1-42962 Update 4 |           |
 | DS1520+      | DSM 7.1.1-42962 Update 4 |           |
 | DS920+       | DSM 7.1.1-42962 Update 1 |           |
@@ -89,6 +91,7 @@ It also has a dry run mode so you can see what it would have done had you run it
     - Confirm your settings and click Apply to finish creating your M.2 volume.
 4. Optionally enable and schedule TRIM:
     - Storage Pool > ... > Settings > SSD TRIM    
+    - **Note: DSM 6 has no SSD TRIM setting for M.2 storage pools**
     - **Note: DSM 7.1.1. has no SSD TRIM setting for M.2 storage pools**
     - **Note: DSM 7.2 Beta has no SSD TRIM setting for M.2 RAID 0 or RAID 5**
 

@@ -50,6 +50,7 @@ All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer som
 | DS1019+      | DSM 7.2-64561            |           |
 | DS1019+      | DSM 7.1.1-42962 Update 4 |           |
 | DS1618+      | DSM 7.1.1                | M2D18     |
+| DS918+       | DSM 7.2-64561            |           |
 | DS918+       | DSM 7.1.1                |           |
 
 ### Important

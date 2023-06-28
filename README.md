@@ -39,6 +39,8 @@ All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer som
 | DS1821+      | DSM 7.1.1-42962 Update 4 |           |
 | DS1821+      | **DSM 6.2.4**-25556 Update 7 |           |
 | DS1621+      | DSM 7.1.1-42962 Update 4 |           |
+| RS1221+      | DSM 7.2-64570 Update 1   |E10M20-T1  |
+| RS1221+      | DSM 7.1.1                |E10M20-T1  |
 | DS1520+      | DSM 7.1.1-42962 Update 4 |           |
 | DS920+       | DSM 7.2-64570 Update 1   |           |
 | DS920+       | DSM 7.2-64561            |           |

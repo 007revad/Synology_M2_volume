@@ -52,6 +52,7 @@ All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer som
 | DS720+       | DSM 7.2-64561            |           |
 | DS720+       | DSM 7.2-64216 Beta       |           |
 | DS720+       | **DSM 6.2.4**            |           |
+| DS420+       | DSM 7.2-64570 Update 1   |           |
 | DS1819+      | DSM 7.2-64216 Beta       | M2D20     |
 | DS1819+      | DSM 7.1.1                | M2D20     |
 | DS1019+      | DSM 7.2-64561            |           |

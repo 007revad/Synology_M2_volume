@@ -30,7 +30,7 @@ All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer som
 | DS1823xs+    | DSM 7.2-64561            | M2D20     |
 | DS923+       | DSM 7.1.1-42962 Update 5 |           |
 | DS723+       | DSM 7.1.1-42962 Update 4 |           |
-| DS423+      |  DSM 7.2-64570 Update 3   |           |
+| DS423+       |  DSM 7.2-64570 Update 3  |           |
 | DS423+       | DSM 7.1.1-42962 Update 4 |           |
 | DS3622xs+    | DSM 7.2-64216 Beta       | E10M20-T1 |
 | DS3622xs+    | DSM 7.1.1-42962 Update 1 |           |

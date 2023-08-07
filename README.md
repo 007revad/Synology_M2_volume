@@ -27,13 +27,18 @@ All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer som
 | Model        | DSM version              | M.2 card  |
 | ------------ |--------------------------|-----------|
 | RS2423+      | DSM 7.2-64570 Update 1   |           |
+| DS1823xs+    | DSM 7.2-64561            | M2D20     |
 | DS923+       | DSM 7.1.1-42962 Update 5 |           |
 | DS723+       | DSM 7.1.1-42962 Update 4 |           |
+| DS423+       | DSM 7.2-64570 Update 3   |           |
 | DS423+       | DSM 7.1.1-42962 Update 4 |           |
 | DS3622xs+    | DSM 7.2-64216 Beta       | E10M20-T1 |
 | DS3622xs+    | DSM 7.1.1-42962 Update 1 |           |
 | DS1522+      | DSM 7.2-64570            |           |
 | DS1522+      | DSM 7.1.1-42962 Update 4 |           |
+| DS1821+      | DSM 7.2-64570 Update 3   |           |
+| DS1821+      | DSM 7.2-64570 Update 1   |           |
+| DS1821+      | DSM 7.2-64570            |           |
 | DS1821+      | DSM 7.2-64561            |           |
 | DS1821+      | DSM 7.2-64216 Beta       |           |
 | DS1821+      | DSM 7.2-64213 Beta       |           |
@@ -41,14 +46,16 @@ All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer som
 | DS1821+      | **DSM 6.2.4**-25556 Update 7 |           |
 | DS1621+      | DSM 7.2-64570 Update 1   |           |
 | DS1621+      | DSM 7.1.1-42962 Update 4 |           |
-| RS1221+      | DSM 7.2-64570 Update 1   |E10M20-T1  |
-| RS1221+      | DSM 7.1.1                |E10M20-T1  |
+| RS1221+      | DSM 7.2-64570 Update 1   | E10M20-T1 |
+| RS1221+      | DSM 7.1.1                | E10M20-T1 |
 | DS1520+      | DSM 7.1.1-42962 Update 4 |           |
 | DS920+       | DSM 7.2-64570 Update 1   |           |
 | DS920+       | DSM 7.2-64561            |           |
 | DS920+       | DSM 7.2-64216 Beta       |           |
 | DS920+       | DSM 7.1.1-42962 Update 1 |           |
 | DS920+       | **DSM 6**                |           |
+| DS720+       | DSM 7.2-64570 Update 3   |           |
+| DS720+       | DSM 7.2-64570 Update 1   |           |
 | DS720+       | DSM 7.2-64570            |           |
 | DS720+       | DSM 7.2-64561            |           |
 | DS720+       | DSM 7.2-64216 Beta       |           |

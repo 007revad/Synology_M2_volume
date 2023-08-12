@@ -54,6 +54,7 @@ All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer som
 | DS920+       | DSM 7.2-64216 Beta       |           |
 | DS920+       | DSM 7.1.1-42962 Update 1 |           |
 | DS920+       | **DSM 6**                |           |
+| RS820+       | DSM 7.2-64570 Update 3   | M2D20     |
 | DS720+       | DSM 7.2-64570 Update 3   |           |
 | DS720+       | DSM 7.2-64570 Update 1   |           |
 | DS720+       | DSM 7.2-64570            |           |

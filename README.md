@@ -3,6 +3,7 @@
 <a href="https://github.com/007revad/Synology_M2_volume/releases"><img src="https://img.shields.io/github/release/007revad/Synology_M2_volume.svg"></a>
 <a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2F007revad%2FSynology_M2_volume&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false"/></a>
 [![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/007revad)
+[![committers.top badge](https://user-badge.committers.top/australia/007revad.svg)](https://user-badge.committers.top/australia/007revad)
 
 ### Description
 
@@ -48,6 +49,7 @@ All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer som
 | DS1621+      | DSM 7.1.1-42962 Update 4 |           |
 | RS1221+      | DSM 7.2-64570 Update 1   | E10M20-T1 |
 | RS1221+      | DSM 7.1.1                | E10M20-T1 |
+| DS1520+      | DSM 7.2-64570 Update 1   |           |
 | DS1520+      | DSM 7.1.1-42962 Update 4 |           |
 | DS920+       | DSM 7.2-64570 Update 1   |           |
 | DS920+       | DSM 7.2-64561            |           |

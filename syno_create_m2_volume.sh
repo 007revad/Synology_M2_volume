@@ -33,7 +33,7 @@
 #
 # Fixed "download new version" failing if script was run via symlink or ./<scriptname>
 #
-# Check for errors from synopartiton, mdadm, pvcreate and vgcreate 
+# Check for errors from synopartiton, mdadm, pvcreate and vgcreate
 #   so the script doesn't continue and appear to have succeeded.
 #
 # Changed "pvcreate" to "pvcreate -ff" to avoid issues.
@@ -107,7 +107,7 @@ Options:
   -s, --steps      Show the steps to do after running this script
   -h, --help       Show this help message
   -v, --version    Show the script version
-  
+
 EOF
 }
 
@@ -120,6 +120,62 @@ See https://github.com/$repo
 EOF
 }
 
+
+createpartition() {
+    if [[ $1 ]]; then
+        echo -e "\nCreating Synology partitions on $1"
+        if [[ $dryrun == "yes" ]]; then
+            echo "synopartition --part /dev/$1 $synopartindex"  # dryrun
+        else
+            if ! synopartition --part /dev/"$1" "$synopartindex"; then
+                echo -e "\n${Error}ERROR 5${Off} Failed to create syno partitions!"
+                exit 1
+            fi
+        fi
+    fi
+}
+
+
+selectdisk(){
+    select nvmes in "${m2list[@]}" "Done"; do
+        case "$nvmes" in
+            Done)
+                Done="yes"
+                selected_disk=""
+                break
+                ;;
+            Quit)
+                exit
+                ;;
+            nvme*)
+                if [[ " ${m2list[*]} " =~ " ${nvmes} " ]]; then
+                    selected_disk="$nvmes"
+                    break
+                else
+                    echo -e "${Red}Invalid answer!${Off} Try again."
+                    selected_disk=""
+                fi
+                ;;
+            *)
+                echo -e "${Red}Invalid answer!${Off} Try again."
+                selected_disk=""
+                ;;
+        esac
+    done
+    echo "echoing ${Done}"
+
+    if [[ $Done!="yes" ]] && [[ $selected_disk ]]; then
+        mdisk+=($selected_disk)
+        # Remove selected drive from list of selectable drives
+        remelement "$selected_disk"
+        # Keep track of many drives user selected
+        selected="$((selected +1))"
+        echo -e "You selected ${Cyan}$selected_disk${Off}"
+
+        #echo "Drives selected: $selected"  # debug
+    fi
+    echo
+}
 
 showsteps(){
     echo -e "\n${Cyan}Steps you need to do after running this script:${Off}"
@@ -138,7 +194,7 @@ EOF
     echo -e "\n${Error}Important${Off}"
     cat <<EOF
 If you later upgrade DSM and your M.2 drives are shown as unsupported
-and the storage pool is shown as missing, and online assemble fails, 
+and the storage pool is shown as missing, and online assemble fails,
 you should run the Synology HDD db script:
 EOF
     echo -e "${Cyan}https://github.com/007revad/Synology_HDD_db${Off}\n"
@@ -271,7 +327,7 @@ source=${BASH_SOURCE[0]}
 while [ -L "$source" ]; do # Resolve $source until the file is no longer a symlink
     scriptpath=$( cd -P "$( dirname "$source" )" >/dev/null 2>&1 && pwd )
     source=$(readlink "$source")
-    # If $source was a relative symlink, we need to resolve it 
+    # If $source was a relative symlink, we need to resolve it
     # relative to the path where the symlink file was located
     [[ $source != /* ]] && source=$scriptpath/$source
 done
@@ -313,7 +369,7 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
                                 copyerr=1
                                 echo -e "${Error}ERROR ${Off} Failed to copy"\
                                     "$script-$shorttag .sh file(s) to:\n $scriptpath"
-                            else                   
+                            else
                                 # Set permsissions on CHANGES.txt
                                 if ! chmod 744 "$scriptpath/"*.sh ; then
                                     permerr=1
@@ -327,7 +383,7 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
                                 copyerr=1
                                 echo -e "${Error}ERROR ${Off} Failed to copy"\
                                     "$script-$shorttag/CHANGES.txt to:\n $scriptpath"
-                            else                   
+                            else
                                 # Set permsissions on CHANGES.txt
                                 if ! chmod 744 "$scriptpath/CHANGES.txt"; then
                                     permerr=1
@@ -432,7 +488,7 @@ for d in /sys/block/*; do
                 getm2info "$d" "SATA"
             fi
         ;;
-        *) 
+        *)
           ;;
     esac
 done
@@ -465,7 +521,7 @@ if [[ ${#m2list[@]} -gt "1" ]]; then
     if [[ ${#m2list[@]} -eq "2" ]]; then
         options=("Single" "RAID 0" "RAID 1")
     elif [[ ${#m2list[@]} -gt "2" ]]; then
-        options=("Single" "RAID 0" "RAID 1" "RAID 5")
+        options=("Single" "RAID 0" "RAID 1" "RAID 5" "RAID 6"  "RAID 10")
     fi
     select raid in "${options[@]}"; do
       case "$raid" in
@@ -499,7 +555,7 @@ if [[ ${#m2list[@]} -gt "1" ]]; then
         Quit)
           exit
           ;;
-        *) 
+        *)
           echo -e "${Red}Invalid answer!${Off} Try again."
           ;;
       esac
@@ -515,6 +571,34 @@ elif [[ ${#m2list[@]} -eq "1" ]]; then
     single="yes"
 fi
 
+
+case $raidtype in
+    "0")
+        mindisk=1
+        ;;
+    "1")
+        mindisk=2
+        ;;
+    "5")
+        mindisk=4
+        ;;
+    "6")
+        mindisk=4
+        ;;
+    "10")
+        mindisk=4
+        ;;
+    *)
+        echo -e "${Red}Invalid raid config!${Off} Try again."
+        ;;
+esac
+
+if [[ $single == "yes" ]]; then
+    maxdisk=1
+    mindisk=1
+else
+    maxdisk=25
+fi
 
 #--------------------------------------------------------------------
 # Selected M.2 drive functions
@@ -554,287 +638,24 @@ remelement(){
 
 #--------------------------------------------------------------------
 # Select first M.2 drive
-
-if [[ $single == "yes" ]]; then
-    PS3="Select the M.2 drive: "
-else
-    PS3="Select the 1st M.2 drive: "
-fi
-select nvmes in "${m2list[@]}"; do
-    case "$nvmes" in
-        nvme0n1)
-            for i in "${!m2list[@]}"; do  # Get array index from element
-                if [[ "${m2list[$i]}" == "nvme0n1" ]]; then
-                    m21="${m2list[i]}"
-                fi
-            done
-            break
-            ;;
-        nvme1n1)
-            for i in "${!m2list[@]}"; do
-                if [[ "${m2list[$i]}" == "nvme1n1" ]]; then
-                    m21="${m2list[i]}"
-                fi
-            done
-            break
-            ;;
-        nvme2n1)
-            for i in "${!m2list[@]}"; do
-                if [[ "${m2list[$i]}" == "nvme2n1" ]]; then
-                    m21="${m2list[i]}"
-                fi
-            done
-            break
-            ;;
-        nvme3n1)
-            for i in "${!m2list[@]}"; do
-                if [[ "${m2list[$i]}" == "nvme3n1" ]]; then
-                    m21="${m2list[i]}"
-                fi
-            done
-            break
-            ;;
-        Quit)
-            exit
-            ;;
-        *) 
-            echo -e "${Red}Invalid answer!${Off} Try again."
-            ;;
-    esac
+mdisk=(  )
+while [[ $selected -lt $mindisk ]] || [[ $selected -lt $maxdisk ]]; do
+    if [[ $single == "yes" ]]; then
+        PS3="Select the M.2 drive: "
+    else
+        PS3="Select the M.2 drive #$((selected+1)): "
+    fi
+    selectdisk
+    if [[ $Done == "yes" ]]; then
+        break
+    fi
 done
 
-if [[ $m21 ]]; then
-    # Remove selected drive from list of selectable drives
-    remelement "$m21"
-    # Keep track of many drives user selected
-    selected="$((selected +1))"
-    echo -e "You selected ${Cyan}$m21${Off}"
-
-    #echo "Drives selected: $selected"  # debug
+if [[ $selected -lt $mindisk ]]; then
+    echo "Drives selected: $selected"
+    echo -e "${Error}ERROR${Off} You need to select $mindisk or more drives for RAID $raidtype"
+    exit
 fi
-echo
-
-
-#--------------------------------------------------------------------
-# Select 2nd M.2 drive (if RAID selected)
-
-if [[ $single != "yes" ]]; then
-    if [[ $raidtype == "0" ]] || [[ $raidtype == "1" ]] || [[ $raidtype == "5" ]];
-    then
-        if [[ ${#m2list[@]} -gt "0" ]]; then
-            PS3="Select the 2nd M.2 drive: "
-            select nvmes in "${m2list[@]}"; do
-                case "$nvmes" in
-                    nvme0n1)
-                        for i in "${!m2list[@]}"; do  # Get array index from element
-                            if [[ "${m2list[$i]}" == "nvme0n1" ]]; then
-                                m22="${m2list[i]}"
-                            fi
-                        done
-                        break
-                        ;;
-                    nvme1n1)
-                        for i in "${!m2list[@]}"; do
-                            if [[ "${m2list[$i]}" == "nvme1n1" ]]; then
-                                m22="${m2list[i]}"
-                            fi
-                        done
-                        break
-                        ;;
-                    nvme2n1)
-                        for i in "${!m2list[@]}"; do
-                            if [[ "${m2list[$i]}" == "nvme2n1" ]]; then
-                                m22="${m2list[i]}"
-                            fi
-                        done
-                        break
-                        ;;
-                    nvme3n1)
-                        for i in "${!m2list[@]}"; do
-                            if [[ "${m2list[$i]}" == "nvme3n1" ]]; then
-                                m22="${m2list[i]}"
-                            fi
-                        done
-                        break
-                        ;;
-                    Quit)
-                        exit
-                        ;;
-                    *) 
-                        echo -e "${Red}Invalid answer!${Off} Try again."
-                        ;;
-                esac
-            done
-            if [[ $m22 ]]; then
-                # Remove selected drive from list of selectable drives
-                remelement "$m22"
-                # Keep track of many drives user selected
-                selected="$((selected +1))"
-                echo -e "You selected ${Cyan}$m22${Off}"
-
-                #echo "Drives selected: $selected"  # debug
-            fi
-            echo
-        fi
-    fi
-fi
-
-
-#--------------------------------------------------------------------
-# Select 3rd M.2 drive (if RAID selected)
-
-if [[ $single != "yes" ]] && [[ $Done != "yes" ]]; then
-    if [[ $raidtype == "0" ]] || [[ $raidtype == "1" ]] || [[ $raidtype == "5" ]];
-    then
-        if [[ ${#m2list[@]} -gt "0" ]]; then
-            #tmplist="${m2list[@]}"
-            for i in "${!m2list[@]}"; do
-                tmplist+=( "${m2list[i]}" )
-            done
-            if [[ $raidtype != "5" ]]; then
-                tmplist+=("Done")  
-            fi
-            PS3="Select the 3rd M.2 drive: "
-            select nvmes in "${tmplist[@]}"; do
-                case "$nvmes" in
-                    nvme0n1)
-                        for i in "${!m2list[@]}"; do  # Get array index from element
-                            if [[ "${m2list[$i]}" == "nvme0n1" ]]; then
-                                m23="${m2list[i]}"
-                            fi
-                        done
-                        break
-                        ;;
-                    nvme1n1)
-                        for i in "${!m2list[@]}"; do
-                            if [[ "${m2list[$i]}" == "nvme1n1" ]]; then
-                                m23="${m2list[i]}"
-                            fi
-                        done
-                        break
-                        ;;
-                    nvme2n1)
-                        for i in "${!m2list[@]}"; do
-                            if [[ "${m2list[$i]}" == "nvme2n1" ]]; then
-                                m23="${m2list[i]}"
-                            fi
-                        done
-                        break
-                        ;;
-                    nvme3n1)
-                        for i in "${!m2list[@]}"; do
-                            if [[ "${m2list[$i]}" == "nvme3n1" ]]; then
-                                m23="${m2list[i]}"
-                            fi
-                        done
-                        break
-                        ;;
-                    Done)
-                        Done="yes"
-                        break
-                        ;;
-                    Quit)
-                        exit
-                        ;;
-                    *) 
-                        echo -e "${Red}Invalid answer!${Off} Try again."
-                        ;;
-                esac
-            done
-            if [[ $m23 ]]; then
-                # Remove selected drive from list of selectable drives
-                remelement "$m23"
-                # Keep track of many drives user selected
-                selected="$((selected +1))"
-                echo -e "You selected ${Cyan}$m23${Off}"
-
-                #echo "Drives selected: $selected"  # debug
-            fi
-            echo
-        fi
-    fi
-fi
-
-
-#--------------------------------------------------------------------
-# Select 4th M.2 drive (if RAID selected)
-
-if [[ $single != "yes" ]] && [[ $Done != "yes" ]]; then
-    if [[ $raidtype == "0" ]] || [[ $raidtype == "1" ]] || [[ $raidtype == "5" ]];
-    then
-        if [[ ${#m2list[@]} -gt "0" ]]; then
-            PS3="Select the 4th M.2 drive: "
-            select nvmes in "${m2list[@]}" "Done"; do
-                case "$nvmes" in
-                    nvme0n1)
-                        for i in "${!m2list[@]}"; do  # Get array index from element
-                            if [[ "${m2list[$i]}" == "nvme0n1" ]]; then
-                                m24="${m2list[i]}"
-                            fi
-                        done
-                        break
-                        ;;
-                    nvme1n1)
-                        for i in "${!m2list[@]}"; do
-                            if [[ "${m2list[$i]}" == "nvme1n1" ]]; then
-                                m24="${m2list[i]}"
-                            fi
-                        done
-                        break
-                        ;;
-                    nvme2n1)
-                        for i in "${!m2list[@]}"; do
-                            if [[ "${m2list[$i]}" == "nvme2n1" ]]; then
-                                m24="${m2list[i]}"
-                            fi
-                        done
-                        break
-                        ;;
-                    nvme3n1)
-                        for i in "${!m2list[@]}"; do
-                            if [[ "${m2list[$i]}" == "nvme3n1" ]]; then
-                                m24="${m2list[i]}"
-                            fi
-                        done
-                        break
-                        ;;
-                    Done)
-                        Done="yes"
-                        break
-                        ;;
-                    Quit)
-                        exit
-                        ;;
-                    *) 
-                        echo -e "${Red}Invalid answer!${Off} Try again."
-                        ;;
-                esac
-            done
-            if [[ $m24 ]]; then
-                # Remove selected drive from list of selectable drives
-                remelement "$m24"
-                # Keep track of many drives user selected
-                selected="$((selected +1))"
-                echo -e "You selected ${Cyan}$m24${Off}"  # debug
-
-                #echo "Drives selected: $selected"  # debug
-            fi
-            echo
-        fi
-    fi
-fi
-
-
-#--------------------------------------------------------------------
-# Check user selected 3 or more drives if RAID 5 selected
-
- if [[ $raidtype == "5" ]]; then
-    if [[ $selected -lt "3" ]]; then
-        echo "Drives selected: $selected"
-        echo -e "${Error}ERROR${Off} You need to select 3 or more drives for RAID 5"
-        exit
-    fi
- fi
 
 
 #--------------------------------------------------------------------
@@ -854,7 +675,7 @@ if [[ $dsm == "6" ]]; then
                 format="ext4"
                 break
                 ;;
-            *) 
+            *)
                 echo -e "${Red}Invalid answer${Off}! Try again."
                 ;;
         esac
@@ -862,28 +683,15 @@ if [[ $dsm == "6" ]]; then
     #echo
 fi
 
-
+echo "dum"
 #--------------------------------------------------------------------
 # Let user confirm their choices
 
 if [[ $format == "btrfs" ]] || [[ $format == "ext4" ]]; then
     formatshow="$format "
 fi
-
-if [[ $selected == "4" ]]; then
-    echo -e "Ready to create ${Cyan}${formatshow}RAID $raidtype${Off} volume"\
-        "group using ${Cyan}$m21${Off}, ${Cyan}$m22${Off},"\
-            "${Cyan}$m23${Off} and ${Cyan}$m24${Off}"
-elif [[ $selected == "3" ]]; then
-    echo -e "Ready to create ${Cyan}${formatshow}RAID $raidtype${Off} volume"\
-        "group using ${Cyan}$m21${Off}, ${Cyan}$m22${Off}"\
-            "and ${Cyan}$m23${Off}"
-elif [[ $selected == "2" ]]; then
-    echo -e "Ready to create ${Cyan}${formatshow}RAID $raidtype${Off} volume"\
-        "group using ${Cyan}$m21${Off} and ${Cyan}$m22${Off}"
-else
-    echo -e "Ready to create ${formatshow}volume group on ${Cyan}$m21${Off}"
-fi
+echo -en "Ready to create ${Cyan}${formatshow}RAID $raidtype${Off} volume group using "
+echo -en "${Cyan}${mdisk[@]}{Off}"
 
 if [[ $haspartitons == "yes" ]]; then
     echo -e "\n${Red}WARNING${Off} Everything on the selected"\
@@ -926,104 +734,32 @@ if [[ $dsm == "7" ]]; then
 else
     synopartindex=12  # Syno partition index for NVMe drives can be 12 or 13 or ?
 fi
-if [[ $m21 ]]; then
-    echo -e "\nCreating Synology partitions on $m21"
-    if [[ $dryrun == "yes" ]]; then
-        echo "synopartition --part /dev/$m21 $synopartindex"  # dryrun
-    else
-        if ! synopartition --part /dev/"$m21" "$synopartindex"; then
-            echo -e "\n${Error}ERROR 5${Off} Failed to create syno partitions!"
-            exit 1
-        fi
-    fi
-fi
-if [[ $m22 ]]; then
-    echo -e "\nCreating Synology partitions on $m22"
-    if [[ $dryrun == "yes" ]]; then
-        echo "synopartition --part /dev/$m22 $synopartindex"  # dryrun
-    else
-        if ! synopartition --part /dev/"$m22" "$synopartindex"; then
-            echo -e "\n${Error}ERROR 5${Off} Failed to create syno partitions!"
-            exit 1
-        fi
-    fi
-fi
-if [[ $m23 ]]; then
-    echo -e "\nCreating Synology partitions on $m23"
-    if [[ $dryrun == "yes" ]]; then
-        echo "synopartition --part /dev/$m23 $synopartindex"  # dryrun
-    else
-        if ! synopartition --part /dev/"$m23" "$synopartindex"; then
-            echo -e "\n${Error}ERROR 5${Off} Failed to create syno partitions!"
-            exit 1
-        fi
-    fi
-fi
-if [[ $m24 ]]; then
-    echo -e "\nCreating Synology partitions on $m24"
-    if [[ $dryrun == "yes" ]]; then
-        echo "synopartition --part /dev/$m24 $synopartindex"  # dryrun
-    else
-        if ! synopartition --part /dev/"$m24" "$synopartindex"; then
-            echo -e "\n${Error}ERROR 5${Off} Failed to create syno partitions!"
-            exit 1
-        fi
-    fi
-fi
 
+partargs=(  )
+for i in "${mdisk[@]}"
+do
+   :
+   createpartition $i
+   partargs+=(
+       /dev/${i}p3
+   )
+done
 
 #--------------------------------------------------------------------
 # Create the RAID array
 # --level=0 for RAID 0  --level=1 for RAID 1  --level=5 for RAID 5
 
 #if [[ $raidtype ]]; then
-if [[ $selected == "2" ]]; then
-    echo -e "\nCreating the RAID array. This can take an hour..."
-    if [[ $dryrun == "yes" ]]; then
-        echo "mdadm --create /dev/md${nextmd} --level=${raidtype} --raid-devices=2"\
-            "--force /dev/${m21}p3 /dev/${m22}p3"                # dryrun
-    else
-        if ! mdadm --create /dev/md"${nextmd}" --level="${raidtype}" --raid-devices=2\
-            --force /dev/"${m21}"p3 /dev/"${m22}"p3; then
-            echo -e "\n${Error}ERROR 5${Off} Failed to create RAID!"
-            exit 1
-        fi
-    fi
-elif [[ $selected == "3" ]]; then
-    echo -e "\nCreating the RAID array. This can take an hour..."
-    if [[ $dryrun == "yes" ]]; then
-        echo "mdadm --create /dev/md${nextmd} --level=${raidtype} --raid-devices=3"\
-            "--force /dev/${m21}p3 /dev/${m22}p3 /dev/${m23}p3"  # dryrun
-    else
-        if ! mdadm --create /dev/md"${nextmd}" --level="${raidtype}" --raid-devices=3\
-            --force /dev/"${m21}"p3 /dev/"${m22}"p3 /dev/"${m23}"p3; then
-            echo -e "\n${Error}ERROR 5${Off} Failed to create RAID!"
-            exit 1
-        fi
-    fi
-elif [[ $selected == "4" ]]; then
-    echo -e "\nCreating the RAID array. This can take an hour..."
-    if [[ $dryrun == "yes" ]]; then
-        echo "mdadm --create /dev/md${nextmd} --level=${raidtype} --raid-devices=4"\
-            "--force /dev/${m21}p3 /dev/${m22}p3 /dev/${m23}p3 /dev/${m24}p3"  # dryrun
-    else
-        if ! mdadm --create /dev/md"${nextmd}" --level="${raidtype}" --raid-devices=4\
-            --force /dev/"${m21}"p3 /dev/"${m22}"p3 /dev/"${m23}"p3 /dev/"${m24}"p3; then
-            echo -e "\n${Error}ERROR 5${Off} Failed to create RAID!"
-            exit 1
-        fi
-    fi
+
+echo -e "\nCreating the RAID array. This can take an hour..."
+if [[ $dryrun == "yes" ]]; then
+    echo "mdadm --create /dev/md${nextmd} --level=${raidtype} --raid-devices=$selected"\
+        "--force ${partargs[@]}"                # dryrun
 else
-    echo -e "\nCreating single drive RAID."
-    if [[ $dryrun == "yes" ]]; then
-        echo "mdadm --create /dev/md${nextmd} --level=1 --raid-devices=1"\
-            "--force /dev/${m21}p3"                                    # dryrun
-    else
-        if ! mdadm --create /dev/md${nextmd} --level=1 --raid-devices=1\
-            --force /dev/"${m21}"p3; then
-            echo -e "\n${Error}ERROR 5${Off} Failed to create RAID!"
-            exit 1
-        fi
+    if ! mdadm --create /dev/md"${nextmd}" --level="${raidtype}" --raid-devices=$selected\
+        --force "${partargs[@]}"; then
+        echo -e "\n${Error}ERROR 5${Off} Failed to create RAID!"
+        exit 1
     fi
 fi
 
@@ -1179,4 +915,3 @@ fi
 
 
 #exit  # Don't exit so user can see DSM's "going down" message
-

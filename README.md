@@ -22,6 +22,8 @@ All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer som
 | RAID 0      | 2 or more drives |
 | RAID 1      | 2 or more drives |
 | RAID 5      | 3 or more drives |
+| RAID 6      | 4 or more drives |
+| RAID 10     | 4 or more drives |
 
 **Confirmed working on:**
 

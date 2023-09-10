@@ -1,6 +1,7 @@
 v1.3.15
 - Added RAID 6 and RAID 10 (thanks Raj)
-- Now script automatically reloads itself after updating.
+- Now shows how long the resync took.
+- Now the script automatically reloads itself after updating.
 
 v1.2.14
 - Prevent running with "sh scriptname.sh".

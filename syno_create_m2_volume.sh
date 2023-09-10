@@ -158,14 +158,14 @@ selectdisk(){
                 exit
                 ;;
             nvme*)
-                if [[ " ${m2list[*]} "  =~ " ${nvmes} " ]]; then
+#                if [[ " ${m2list[*]} "  =~ " ${nvmes} " ]]; then
                 #if [[ ${m2list[*]}  == "${nvmes}" ]]; then
                     selected_disk="$nvmes"
                     break
-                else
-                    echo -e "${Red}Invalid answer!${Off} Try again." >&2
-                    selected_disk=""
-                fi
+#                else
+#                    echo -e "${Red}Invalid answer!${Off} Try again." >&2
+#                    selected_disk=""
+#                fi
                 ;;
             *)
                 echo -e "${Red}Invalid answer!${Off} Try again." >&2

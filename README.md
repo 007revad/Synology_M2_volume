@@ -14,6 +14,8 @@ Easily create an M.2 volume on Synology NAS without a lot of typing and no need 
 
 All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer some simple questions. Then reboot, go to Storage Manager, Online Assemable and Create Volume.
 
+It also allows you to create a storage pool/volume spanning internal NVMe drives and NVMe drives in a Synology M.2 PCIe card.
+
 **RAID levels supported:**
 
 | RAID Level  | Drives Required  |

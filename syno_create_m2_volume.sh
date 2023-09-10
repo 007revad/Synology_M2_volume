@@ -158,8 +158,8 @@ selectdisk(){
                 exit
                 ;;
             nvme*)
-                #if [[ " ${m2list[*]} "  =~ " ${nvmes} " ]]; then
-                if [[ ${m2list[*]}  == "${nvmes}" ]]; then
+                if [[ " ${m2list[*]} "  =~ " ${nvmes} " ]]; then
+                #if [[ ${m2list[*]}  == "${nvmes}" ]]; then
                     selected_disk="$nvmes"
                     break
                 else

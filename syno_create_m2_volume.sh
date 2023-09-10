@@ -517,17 +517,6 @@ for d in /sys/block/*; do
     esac
 done
 
-
-#echo "raid5: $raid5"           # debug
-#echo "dryrun: $dryrun"         # debug
-
-# Test with 2 extra fake drives
-if [[ $raid5 == "yes" ]]; then  # test
-    m2list+=("nvme2n1")         # test
-    m2list+=("nvme3n1")         # test
-fi                              # test
-
-
 #echo -e "Inactive M.2 drives found: ${#m2list[@]}\n"
 echo -e "Unused M.2 drives found: ${#m2list[@]}\n"
 

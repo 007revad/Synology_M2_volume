@@ -193,62 +193,6 @@ selectdisk(){
 }
 
 
-createpartition() {
-    if [[ $1 ]]; then
-        echo -e "\nCreating Synology partitions on $1"
-        if [[ $dryrun == "yes" ]]; then
-            echo "synopartition --part /dev/$1 $synopartindex"  # dryrun
-        else
-            if ! synopartition --part /dev/"$1" "$synopartindex"; then
-                echo -e "\n${Error}ERROR 5${Off} Failed to create syno partitions!"
-                exit 1
-            fi
-        fi
-    fi
-}
-
-
-selectdisk(){
-    select nvmes in "${m2list[@]}" "Done"; do
-        case "$nvmes" in
-            Done)
-                Done="yes"
-                selected_disk=""
-                break
-                ;;
-            Quit)
-                exit
-                ;;
-            nvme*)
-                if [[ " ${m2list[*]} " =~ " ${nvmes} " ]]; then
-                    selected_disk="$nvmes"
-                    break
-                else
-                    echo -e "${Red}Invalid answer!${Off} Try again."
-                    selected_disk=""
-                fi
-                ;;
-            *)
-                echo -e "${Red}Invalid answer!${Off} Try again."
-                selected_disk=""
-                ;;
-        esac
-    done
-    echo "echoing ${Done}"
-
-    if [[ $Done!="yes" ]] && [[ $selected_disk ]]; then
-        mdisk+=($selected_disk)
-        # Remove selected drive from list of selectable drives
-        remelement "$selected_disk"
-        # Keep track of many drives user selected
-        selected="$((selected +1))"
-        echo -e "You selected ${Cyan}$selected_disk${Off}"
-
-        #echo "Drives selected: $selected"  # debug
-    fi
-    echo
-}
-
 showsteps(){
     echo -e "\n${Cyan}Steps you need to do after running this script:${Off}" >&2
     major=$(get_key_value /etc.defaults/VERSION major)
@@ -665,34 +609,6 @@ elif [[ $raidtype == "1" ]]; then
 fi
 
 
-case $raidtype in
-    "0")
-        mindisk=1
-        ;;
-    "1")
-        mindisk=2
-        ;;
-    "5")
-        mindisk=4
-        ;;
-    "6")
-        mindisk=4
-        ;;
-    "10")
-        mindisk=4
-        ;;
-    *)
-        echo -e "${Red}Invalid raid config!${Off} Try again."
-        ;;
-esac
-
-if [[ $single == "yes" ]]; then
-    maxdisk=1
-    mindisk=1
-else
-    maxdisk=25
-fi
-
 #--------------------------------------------------------------------
 # Selected M.2 drive functions
 
@@ -784,7 +700,7 @@ if [[ $dsm == "6" ]]; then
     #echo
 fi
 
-echo "dum"
+
 #--------------------------------------------------------------------
 # Let user confirm their choices
 
@@ -842,11 +758,12 @@ partargs=(  )
 for i in "${mdisk[@]}"
 do
    :
-   createpartition $i
+   createpartition "$i"
    partargs+=(
-       /dev/${i}p3
+       /dev/"${i}"p3
    )
 done
+
 
 #--------------------------------------------------------------------
 # Create the RAID array
@@ -1037,3 +954,4 @@ fi
 
 
 #exit  # Don't exit so user can see DSM's "going down" message
+

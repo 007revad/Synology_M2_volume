@@ -12,20 +12,22 @@ Easily create an M.2 volume on Synology NAS without a lot of typing and no need 
 - **DSM 7** This script creates the RAID and storage pool on your NVMe drive(s) so you can then create the volume in the DSM GUI.
 - **DSM 6** This script creates the RAID, storage pool and volume on your NVMe drive(s) for you.
 
-All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer some simple questions. Then reboot, go to Storage Manager, Online Assemable and Create Volume.
+All you have to do is run the script and type yes and 1, 2, 3 or 4 to answer some simple questions. Then reboot, go to Storage Manager, Online Assemble and Create Volume.
 
 It also allows you to create a storage pool/volume spanning internal NVMe drives and NVMe drives in a Synology M.2 PCIe card.
 
+For Xpenology users the script supports an unlimited number of NVMe drives for RAID 0, 5, 6 and 10.
+
 **RAID levels supported:**
 
-| RAID Level  | Drives Required  |
-| ----------- |------------------|
-| Single      | 1 drive          |
-| RAID 0      | 2 or more drives |
-| RAID 1      | 2 or more drives |
-| RAID 5      | 3 or more drives |
-| RAID 6      | 4 or more drives |
-| RAID 10     | 4 or more drives |
+| RAID Level  | Drives Required  | Maximum Drives |
+| ----------- |------------------|----------------|
+| Single      | 1 drive          | 1 drive        |
+| RAID 0      | 2 or more drives | Unlimited      |
+| RAID 1      | 2 or more drives | 4 drives       |
+| RAID 5      | 3 or more drives | Unlimited      |
+| RAID 6      | 4 or more drives | Unlimited      |
+| RAID 10     | 4 or more drives | Unlimited      |
 
 **Confirmed working on:**
 
@@ -130,7 +132,7 @@ It also has a dry run mode so you can see what it would have done had you run it
 
 ### DSM 7 screen shots
 
-<p align="center">Storage Pool available for online assembly</p>
+<p align="center">Storage Pool available for Online Assemble</p>
 <p align="center"><img src="/images/create_m2_volume_available_pool.png"></p>
 
 <p align="center">Online Assemble step 1</p>

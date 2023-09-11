@@ -1,6 +1,6 @@
 v1.3.15
 - Added RAID 6 and RAID 10 (thanks Raj)
-- Added support for an unlimited number of 32 M.2 drives for RAID 0, 5, 6 and 10.
+- Added support for an unlimited number of M.2 drives for RAID 0, 5, 6 and 10.
 - Now shows how long the resync took.
 - Now the script automatically reloads itself after updating.
 

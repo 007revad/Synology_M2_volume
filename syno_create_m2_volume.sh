@@ -27,7 +27,9 @@
 
 # DONE
 # Added support for RAID 6 and RAID 10 (thanks Raj)
-#
+# Added support for an unlimited number of M.2 drives for RAID 0, 5, 6 and 10.
+#  https://kb.synology.com/en-in/DSM/tutorial/What_is_RAID_Group
+# Now shows how long the resync took.
 # The script now automatically reloads after updating itself.
 #
 # Added DSM 6 support (WIP)
@@ -147,45 +149,47 @@ createpartition(){
 
 
 selectdisk(){
-    select nvmes in "${m2list[@]}" "Done"; do
-        case "$nvmes" in
-            Done)
-                Done="yes"
-                selected_disk=""
-                break
-                ;;
-            Quit)
-                exit
-                ;;
-            nvme*)
-#                if [[ " ${m2list[*]} "  =~ " ${nvmes} " ]]; then
-                #if [[ ${m2list[*]}  == "${nvmes}" ]]; then
-                    selected_disk="$nvmes"
+    if [[ ${#m2list[@]} -gt "0" ]]; then
+        select nvmes in "${m2list[@]}" "Done"; do
+            case "$nvmes" in
+                Done)
+                    Done="yes"
+                    selected_disk=""
                     break
-#                else
-#                    echo -e "${Red}Invalid answer!${Off} Try again." >&2
-#                    selected_disk=""
-#                fi
-                ;;
-            *)
-                echo -e "${Red}Invalid answer!${Off} Try again." >&2
-                selected_disk=""
-                ;;
-        esac
-    done
-    #echo "echoing ${Done}"
+                    ;;
+                Quit)
+                    exit
+                    ;;
+                nvme*)
+                    #if [[ " ${m2list[*]} "  =~ " ${nvmes} " ]]; then
+                        selected_disk="$nvmes"
+                        break
+                    #else
+                    #    echo -e "${Red}Invalid answer!${Off} Try again." >&2
+                    #    selected_disk=""
+                    #fi
+                    ;;
+                *)
+                    echo -e "${Red}Invalid answer!${Off} Try again." >&2
+                    selected_disk=""
+                    ;;
+            esac
+        done
 
-    if [[ $Done != "yes" ]] && [[ $selected_disk ]]; then
-        mdisk+=("$selected_disk")
-        # Remove selected drive from list of selectable drives
-        remelement "$selected_disk"
-        # Keep track of many drives user selected
-        selected="$((selected +1))"
-        echo -e "You selected ${Cyan}$selected_disk${Off}" >&2
+        if [[ $Done != "yes" ]] && [[ $selected_disk ]]; then
+            mdisk+=("$selected_disk")
+            # Remove selected drive from list of selectable drives
+            remelement "$selected_disk"
+            # Keep track of many drives user selected
+            selected="$((selected +1))"
+            echo -e "You selected ${Cyan}$selected_disk${Off}" >&2
 
-        #echo "Drives selected: $selected" >&2  # debug
+            #echo "Drives selected: $selected" >&2  # debug
+        fi
+        echo
+    else
+        Done="yes"
     fi
-    echo
 }
 
 
@@ -317,7 +321,7 @@ read -r answer
 if [[ ${answer,,} != "yes" ]]; then dryrun="yes"; fi
 if [[ $dryrun == "yes" ]]; then
     echo -e "*** Doing a dry run test ***\n"
-    sleep 3  # Make sure they see they're running a dry run test
+    sleep 1  # Make sure they see they're running a dry run test
 else
     echo
 fi
@@ -539,42 +543,48 @@ if [[ ${#m2list[@]} -gt "1" ]]; then
     select raid in "${options[@]}"; do
       case "$raid" in
         "Single")
-          raidtype="1"
-          single="yes"
-          mindisk=1
-          break
-          ;;
+            raidtype="1"
+            single="yes"
+            mindisk=1
+            #maxdisk=1
+            break
+            ;;
         "RAID 0")
-          raidtype="0"
-          mindisk=2
-          break
-          ;;
+            raidtype="0"
+            mindisk=2
+            #maxdisk=24
+            break
+            ;;
         "RAID 1")
-          raidtype="1"
-          mindisk=2
-          break
-          ;;
+            raidtype="1"
+            mindisk=2
+            #maxdisk=4
+            break
+            ;;
         "RAID 5")
-          raidtype="5"
-          mindisk=3
-          break
-          ;;
+            raidtype="5"
+            mindisk=3
+            #maxdisk=24
+            break
+            ;;
         "RAID 6")
-          raidtype="6"
-          mindisk=4
-          break
-          ;;
+            raidtype="6"
+            mindisk=4
+            #maxdisk=24
+            break
+            ;;
         "RAID 10")
-          raidtype="10"
-          mindisk=4
-          break
-          ;;
+            raidtype="10"
+            mindisk=4
+            #maxdisk=24
+            break
+            ;;
         Quit)
-          exit
-          ;;
+            exit
+            ;;
         *)
-          echo -e "${Red}Invalid answer!${Off} Try again."
-          ;;
+            echo -e "${Red}Invalid answer!${Off} Try again."
+            ;;
       esac
     done
     if [[ $single == "yes" ]]; then
@@ -590,8 +600,12 @@ fi
 
 if [[ $single == "yes" ]]; then
     maxdisk=1
-else
-    maxdisk=25
+elif [[ $raidtype == "1" ]]; then
+    maxdisk=4
+#else
+    # Only Basic and RAID 1 have a limit on the number of drives in DSM 7 and 6
+    # Later we set maxdisk to the number of M.2 drives found if not Single or RAID 1
+#    maxdisk=24
 fi
 
 
@@ -635,6 +649,13 @@ remelement(){
 # Select M.2 drives
 
 mdisk=(  )
+
+# Set maxdisk to the number of M.2 drives found if not Single or RAID 1
+# Only Basic and RAID 1 have a limit on the number of drives in DSM 7 and 6
+if [[ $single != "yes" ]] && [[ $raidtype != "1" ]]; then
+    maxdisk="${#m2list[@]}"
+fi
+
 while [[ $selected -lt "$mindisk" ]] || [[ $selected -lt "$maxdisk" ]]; do
     if [[ $single == "yes" ]]; then
         PS3="Select the M.2 drive: "
@@ -655,7 +676,7 @@ fi
 
 
 #--------------------------------------------------------------------
-# Select file system - only DSM 6.2.4 and lower ###################################################
+# Select file system - only DSM 6.2.4 and lower
 
 if [[ $dsm == "6" ]]; then
     PS3="Select the file system: "
@@ -706,7 +727,7 @@ if [[ ${answer,,} != "yes" ]]; then exit; fi
 
 # Abandon hope, all ye who enter here :)
 echo -e "You chose to continue. You are brave! :)\n"
-sleep 3
+sleep 1
 
 
 #--------------------------------------------------------------------
@@ -750,7 +771,9 @@ done
 
 #if [[ $raidtype ]]; then
 
-echo -e "\nCreating the RAID array. This can take an hour..."
+SECONDS=0  # To work out how long the resync took
+
+echo -e "\nCreating the RAID array. This will take a while..."
 if [[ $dryrun == "yes" ]]; then
     echo "mdadm --create /dev/md${nextmd} --level=${raidtype} --raid-devices=$selected"\
         --force "${partargs[@]}"                # dryrun
@@ -781,6 +804,16 @@ else
     if [[ $progress ]]; then
         echo -ne "      [====================>]  resync = 100%\r"
     fi
+fi
+
+# Show how long the resync took
+end=$SECONDS
+if [[ $end -ge 3600 ]]; then
+    printf '\nResync Duration: %d hr %d min\n' $((end/3600)) $((end%3600/60))
+elif [[ $end -ge 60 ]]; then
+    echo -e "\nResync Duration: $(( end / 60 )) min"
+else
+    echo -e "\nResync Duration: $end sec"
 fi
 
 
@@ -817,7 +850,7 @@ fi
 
 
 #--------------------------------------------------------------------
-# Format array - only DSM 6.2.4 and lower #########################################################
+# Format array - only DSM 6.2.4 and lower
 
 if [[ $dsm == "6" ]]; then
     if [[ $format == "btrfs" ]]; then
@@ -906,9 +939,10 @@ showsteps  # Show the final steps to do in DSM
 #--------------------------------------------------------------------
 # Reboot
 
-echo -e "\n${Cyan}The Synology needs to restart.${Off}"
+echo -e "\n${Cyan}Online assemble option may not appear in storage manager \
+    until you reboot.${Off}"
 echo -e "Type ${Cyan}yes${Off} to reboot now."
-echo -e "Type anything else to quit (if you will restart it yourself)."
+echo -e "Type anything else to quit (if you will reboot it yourself)."
 read -r answer
 if [[ ${answer,,} != "yes" ]]; then exit; fi
 if [[ $dryrun == "yes" ]]; then

@@ -31,8 +31,8 @@ For Xpenology users the script supports an unlimited number of NVMe drives for R
 
 **Confirmed working on:**
 
-| Model        | DSM version              | M.2 card  |
-| ------------ |--------------------------|-----------|
+| Model        | DSM version              | M.2 card  | Notes |
+| ------------ |--------------------------|-----------|-----------------|
 | RS2423+      | DSM 7.2-64570 Update 1   |           |
 | DS1823xs+    | DSM 7.2-64561            | M2D20     |
 | DS923+       | DSM 7.1.1-42962 Update 5 |           |
@@ -45,6 +45,7 @@ For Xpenology users the script supports an unlimited number of NVMe drives for R
 | DS1522+      | DSM 7.2-64570            |           |
 | DS1522+      | DSM 7.1.1-42962 Update 4 |           |
 | DS1821+      | DSM 7.2-64570 Update 3   |           |
+| DS1821+      | DSM 7.2-64570 Update 1   | M2D18     | Needs [Synology HDD db](https://github.com/007revad/Synology_HDD_db) |
 | DS1821+      | DSM 7.2-64570 Update 1   |           |
 | DS1821+      | DSM 7.2-64570            |           |
 | DS1821+      | DSM 7.2-64561            |           |
@@ -52,6 +53,7 @@ For Xpenology users the script supports an unlimited number of NVMe drives for R
 | DS1821+      | DSM 7.2-64213 Beta       |           |
 | DS1821+      | DSM 7.1.1-42962 Update 4 |           |
 | DS1821+      | **DSM 6.2.4**-25556 Update 7 |           |
+| DS1621+      | DSM 7.2-64570 Update 1   | E10M20-T1 | Needs [Synology HDD db](https://github.com/007revad/Synology_HDD_db) |
 | DS1621+      | DSM 7.2-64570 Update 1   |           |
 | DS1621+      | DSM 7.1.1-42962 Update 4 |           |
 | RS1221+      | DSM 7.2-64570 Update 1   | E10M20-T1 |

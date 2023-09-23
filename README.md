@@ -31,7 +31,7 @@ For Xpenology users the script supports an unlimited number of NVMe drives for R
 
 **Confirmed working on:**
 
-| Model        | DSM version              | M.2 card  | Notes |
+| Model        | DSM version              | M.2 card  | Notes           |
 | ------------ |--------------------------|-----------|-----------------|
 | RS2423+      | DSM 7.2-64570 Update 1   |           |
 | DS1823xs+    | DSM 7.2-64561            | M2D20     |

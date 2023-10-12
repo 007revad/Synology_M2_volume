@@ -91,6 +91,10 @@ If you later update DSM and your M.2 drives are shown as unsupported and the sto
 
 See <a href=images/how_to_download_generic.png/>How to download the script</a> for the easiest way to download the script.
 
+### Video guide
+
+Vikash has created a step by step YouTube video here: https://www.youtube.com/watch?v=sclQprHsXQE
+
 ### To run the script
 
 ```YAML
@@ -99,7 +103,21 @@ sudo -i /volume1/scripts/syno_create_m2_volume.sh
 
 **Note:** Replace /volume1/scripts/ with the path to where the script is located.
 
-**Options:**
+### Troubleshooting:
+
+If the script won't run check the following:
+
+1. If the path to the script contains any spaces you need to enclose the path/scriptname in double quotes:
+   ```YAML
+   sudo -i "/volume1/my scripts/syno_create_m2_volume.sh"
+   ```
+2. Make sure you unpacked the zip or rar file that you downloaded and are trying to run the syno_create_m2_volume.sh file.
+3. Set the syno_create_m2_volume.sh file as executable:
+   ```YAML
+   sudo chmod +x "/volume1/scripts/syno_create_m2_volume.sh"
+   ```
+
+### Options:
 ```YAML
   -a, --all        List all M.2 drives even if detected as active
   -s, --steps      Show the steps to do after running this script

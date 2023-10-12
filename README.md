@@ -103,7 +103,7 @@ sudo -i /volume1/scripts/syno_create_m2_volume.sh
 
 **Note:** Replace /volume1/scripts/ with the path to where the script is located.
 
-### Troubleshooting
+### Troubleshooting:
 
 If the script won't run check the following:
 
@@ -117,7 +117,7 @@ If the script won't run check the following:
    sudo chmod +x "/volume1/scripts/syno_create_m2_volume.sh"
    ```
 
-**Options:**
+### Options:
 ```YAML
   -a, --all        List all M.2 drives even if detected as active
   -s, --steps      Show the steps to do after running this script

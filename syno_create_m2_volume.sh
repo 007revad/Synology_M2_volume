@@ -17,7 +17,6 @@
 # https://easylinuxtipsproject.blogspot.com/p/ssd.html#ID16.2
 #-----------------------------------------------------------------------------------
 
-
 # TODO
 # Better detection if DSM is using the drive.
 # Show drive names the same as DSM does.
@@ -26,6 +25,10 @@
 # Add option to repair damaged array? DSM can probably handle this.
 
 # DONE
+# Changed to not show RAID 1 when Single drive selected.
+# Changed so the Done choice only appears when enough drives have been selected.
+# Changed to say "This can take while" instead of "This can take an hour".
+#
 # Added support for RAID 6 and RAID 10 (thanks Raj)
 # Added support for an unlimited number of M.2 drives for RAID 0, 5, 6 and 10.
 #  https://kb.synology.com/en-in/DSM/tutorial/What_is_RAID_Group
@@ -77,7 +80,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.3.15"
+scriptver="v1.3.16"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 
@@ -150,7 +153,15 @@ createpartition(){
 
 selectdisk(){
     if [[ ${#m2list[@]} -gt "0" ]]; then
-        select nvmes in "${m2list[@]}" "Done"; do
+
+        # Only show Done choice when required number of drives selected
+        if [[ $single != "yes" ]] && [[ "${#mdisk[@]}" -ge "$mindisk" ]]; then
+            showDone=" Done"
+        else
+            showDone=""
+        fi
+
+        select nvmes in "${m2list[@]}"$showDone; do
             case "$nvmes" in
                 Done)
                     Done="yes"
@@ -161,13 +172,13 @@ selectdisk(){
                     exit
                     ;;
                 nvme*)
-                    #if [[ " ${m2list[*]} "  =~ " ${nvmes} " ]]; then
+#                    if [[ " ${m2list[*]} "  =~ " ${nvmes} " ]]; then
                         selected_disk="$nvmes"
                         break
-                    #else
-                    #    echo -e "${Red}Invalid answer!${Off} Try again." >&2
-                    #    selected_disk=""
-                    #fi
+#                    else
+#                        echo -e "${Red}Invalid answer!${Off} Try again." >&2
+#                        selected_disk=""
+#                    fi
                     ;;
                 *)
                     echo -e "${Red}Invalid answer!${Off} Try again." >&2
@@ -708,8 +719,12 @@ if [[ $format == "btrfs" ]] || [[ $format == "ext4" ]]; then
     formatshow="$format "
 fi
 
-echo -en "Ready to create ${Cyan}${formatshow}RAID $raidtype${Off} volume group using "
-echo -e "${Cyan}${mdisk[*]}${Off}"
+if [[ $single == "yes" ]]; then
+    echo -en "Ready to create volume group using ${Cyan}${mdisk[*]}${Off}"
+else
+    echo -en "Ready to create ${Cyan}${formatshow}RAID $raidtype${Off} volume group using "
+    echo -e "${Cyan}${mdisk[*]}${Off}"
+fi
 
 if [[ $haspartitons == "yes" ]]; then
     echo -e "\n${Red}WARNING${Off} Everything on the selected"\

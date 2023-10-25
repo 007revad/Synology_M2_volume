@@ -1,5 +1,7 @@
 v1.3.16
-- Minor changes to messages.
+- Changed to not show RAID 1 when Single drive selected.
+- Changed so the Done choice only appears when enough drives have been selected.
+- Changed to say "This can take while" instead of "This can take an hour".
 
 v1.3.15
 - Added RAID 6 and RAID 10 (thanks Raj)

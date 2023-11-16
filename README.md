@@ -35,6 +35,7 @@ For Xpenology users the script supports an unlimited number of NVMe drives for R
 | ------------ |--------------------------|-----------|-----------------|
 | RS2423+      | DSM 7.2-64570 Update 1   |           |
 | DS1823xs+    | DSM 7.2-64561            | M2D20     |
+| DS923+       | DSM 7.2.1-69057 Update 2 |           |
 | DS923+       | DSM 7.1.1-42962 Update 5 |           |
 | DS723+       | DSM 7.2-64570 Update 1   |           |
 | DS723+       | DSM 7.1.1-42962 Update 4 |           |
@@ -62,6 +63,7 @@ For Xpenology users the script supports an unlimited number of NVMe drives for R
 | DS1621+      | DSM 7.1.1-42962 Update 4 |           |
 | RS1221+      | DSM 7.2-64570 Update 1   | E10M20-T1 |
 | RS1221+      | DSM 7.1.1                | E10M20-T1 |
+| DS1520+      | DSM 7.2.1-69057 Update 2 |           |
 | DS1520+      | DSM 7.2-64570 Update 1   |           |
 | DS1520+      | DSM 7.1.1-42962 Update 4 |           |
 | DS920+       | DSM 7.2.1-69057 Update 2 |           |

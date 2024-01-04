@@ -31,7 +31,7 @@
 - **<a href="https://github.com/007revad/Synology_DSM_reinstall">Synology_DSM_reinstall</a>**
   - Easily re-install the same DSM version without losing any data or settings
 
-- **<a href="https://github.com/007revad/Synology_DSM_reinstall">Synology_move_apps</a>**
+- **<a href="https://github.com/007revad/Synology_app_mover">Synology_app_mover</a>**
   - Easily move Synology packages from one volume to another volume
 
 - **<a href="https://github.com/007revad/Synology_Cleanup_Coredumps">Synology_Cleanup_Coredumps</a>**

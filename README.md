@@ -112,7 +112,9 @@ See <a href=images/how_to_download_generic.png/>How to download the script</a> f
 
 Vikash has created a step by step YouTube video here: https://www.youtube.com/watch?v=sclQprHsXQE
 
-### To run the script
+### To run the script via SSH
+
+[How to enable SSH and login to DSM via SSH](https://kb.synology.com/en-global/DSM/tutorial/How_to_login_to_DSM_with_root_permission_via_SSH_Telnet)
 
 ```YAML
 sudo -i /volume1/scripts/syno_create_m2_volume.sh

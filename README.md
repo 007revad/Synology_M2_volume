@@ -18,7 +18,7 @@ It also allows you to create a storage pool/volume spanning internal NVMe drives
 
 For Xpenology users the script supports an unlimited number of NVMe drives for RAID 0, 5, 6 and 10.
 
-**RAID levels supported:**
+### RAID levels supported
 
 | RAID Level  | Drives Required  | Maximum Drives |
 | ----------- |------------------|----------------|
@@ -29,7 +29,10 @@ For Xpenology users the script supports an unlimited number of NVMe drives for R
 | RAID 6      | 4 or more drives | Unlimited      |
 | RAID 10     | 4 or more drives | Unlimited      |
 
-**Confirmed working on:**
+### Confirmed working on
+
+<details>
+  <summary>Click here to see list</summary>
 
 | Model        | DSM version              | M.2 card  | Notes           |
 | ------------ |--------------------------|-----------|-----------------|
@@ -100,6 +103,8 @@ For Xpenology users the script supports an unlimited number of NVMe drives for R
 | DS918+       | DSM 7.1.1                |           |
 | DS3617xs     | DSM 7.2-64570            | M2D20     |
 
+</details>
+
 ### Important
 
 If you later update DSM and your M.2 drives are shown as unsupported and the storage pool is shown as missing, and online assemble fails, you need to run the <a href="https://github.com/007revad/Synology_HDD_db">Synology_HDD_db</a> script. The <a href="https://github.com/007revad/Synology_HDD_db">Synology_HDD_db</a> script should run after every DSM update.
@@ -122,7 +127,7 @@ sudo -i /volume1/scripts/syno_create_m2_volume.sh
 
 **Note:** Replace /volume1/scripts/ with the path to where the script is located.
 
-### Troubleshooting:
+### Troubleshooting
 
 If the script won't run check the following:
 

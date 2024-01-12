@@ -1,4 +1,4 @@
-v1.3.17
+v1.3.18
 - Improved script updating itself
 - Now checks script is running on a Synology NAS
 - Now shows the Storage Manager packager version

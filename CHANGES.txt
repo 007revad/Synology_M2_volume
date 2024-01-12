@@ -1,3 +1,8 @@
+v1.3.17
+- Improved script updating itself
+- Now checks script is running on a Synology NAS
+- Now shows the Storage Manager packager version
+
 v1.3.16
 - Changed to not show RAID 1 when Single drive selected.
 - Changed so the Done choice only appears when enough drives have been selected.

@@ -80,7 +80,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.3.18"
+scriptver="v1.3.19"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 scriptname=syno_m2_volume
@@ -387,14 +387,11 @@ fi
 
 
 cleanup_tmp(){ 
-    cleanup_err=
-
     # Delete downloaded .tar.gz file
     if [[ -f "/tmp/$script-$shorttag.tar.gz" ]]; then
         if ! rm "/tmp/$script-$shorttag.tar.gz"; then
             echo -e "${Error}ERROR${Off} Failed to delete"\
                 "downloaded /tmp/$script-$shorttag.tar.gz!" >&2
-            cleanup_err=1
         fi
     fi
 
@@ -403,13 +400,7 @@ cleanup_tmp(){
         if ! rm -r "/tmp/$script-$shorttag"; then
             echo -e "${Error}ERROR${Off} Failed to delete"\
                 "downloaded /tmp/$script-$shorttag!" >&2
-            cleanup_err=1
         fi
-    fi
-
-    # Add warning to DSM log
-    if [[ -z $cleanup_err ]]; then
-        syslog_set warn "$script update failed to delete tmp files"
     fi
 }
 
@@ -450,7 +441,6 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
                             if ! chmod a+x "/tmp/$script-$shorttag/"*.sh ; then
                                 permerr=1
                                 echo -e "${Error}ERROR${Off} Failed to set executable permissions"
-                                syslog_set warn "$script failed to set permissions on $tag"
                             fi
 
                             # Copy new script sh file to script location

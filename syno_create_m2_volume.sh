@@ -80,7 +80,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.3.17"
+scriptver="v1.3.18"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 scriptname=syno_m2_volume
@@ -342,18 +342,6 @@ if [[ $storagemgrver ]]; then echo -e "StorageManager $storagemgrver\n"; fi
 echo -e "Using options: ${args[*]}\n"
 
 
-echo -e "Type ${Cyan}yes${Off} to continue."\
-    "Type anything else to do a ${Cyan}dry run test${Off}."
-read -r answer
-if [[ ${answer,,} != "yes" ]]; then dryrun="yes"; fi
-if [[ $dryrun == "yes" ]]; then
-    echo -e "*** Doing a dry run test ***\n"
-    sleep 1  # Make sure they see they're running a dry run test
-else
-    echo
-fi
-
-
 #------------------------------------------------------------------------------
 # Check latest release with GitHub API
 
@@ -518,6 +506,18 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
             fi
         fi
     fi
+fi
+
+
+echo -e "Type ${Cyan}yes${Off} to continue."\
+    "Type anything else to do a ${Cyan}dry run test${Off}."
+read -r answer
+if [[ ${answer,,} != "yes" ]]; then dryrun="yes"; fi
+if [[ $dryrun == "yes" ]]; then
+    echo -e "*** Doing a dry run test ***\n"
+    sleep 1  # Make sure they see they're running a dry run test
+else
+    echo
 fi
 
 

@@ -124,7 +124,7 @@ Vikash has created a step by step YouTube video here: https://www.youtube.com/wa
 [How to enable SSH and login to DSM via SSH](https://kb.synology.com/en-global/DSM/tutorial/How_to_login_to_DSM_with_root_permission_via_SSH_Telnet)
 
 ```YAML
-sudo -i /volume1/scripts/syno_create_m2_volume.sh
+sudo -s /volume1/scripts/syno_create_m2_volume.sh
 ```
 
 **Note:** Replace /volume1/scripts/ with the path to where the script is located.
@@ -135,7 +135,7 @@ If the script won't run check the following:
 
 1. If the path to the script contains any spaces you need to enclose the path/scriptname in double quotes:
    ```YAML
-   sudo -i "/volume1/my scripts/syno_create_m2_volume.sh"
+   sudo -s "/volume1/my scripts/syno_create_m2_volume.sh"
    ```
 2. Make sure you unpacked the zip or rar file that you downloaded and are trying to run the syno_create_m2_volume.sh file.
 3. Set the syno_create_m2_volume.sh file as executable:

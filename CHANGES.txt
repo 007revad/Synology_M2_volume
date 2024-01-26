@@ -2,9 +2,9 @@ v1.3.21
 - Bug fix for false "This script is NOT running on a Synology NAS!" if uname is installed from Entware.
 
 v1.3.20
-- Improved script updating itself
-- Now checks script is running on a Synology NAS
-- Now shows the Storage Manager packager version
+- Improved script updating itself.
+- Now checks script is running on a Synology NAS.
+- Now shows the Storage Manager packager version.
 
 v1.3.16
 - Changed to not show RAID 1 when Single drive selected.

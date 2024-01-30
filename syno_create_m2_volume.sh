@@ -80,7 +80,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.3.21"
+scriptver="v1.3.22"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 scriptname=syno_create_m2_volume
@@ -481,7 +481,7 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
 
                                 # Reload script
                                 printf -- '-%.0s' {1..79}; echo  # print 79 -
-                                exec "$0" "${args[@]}"
+                                exec "${scriptpath}/$scriptfile" "${args[@]}"
                             fi
                         fi
                     else

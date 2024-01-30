@@ -1,3 +1,6 @@
+v1.3.22
+- Bug fix when script updates itself and user ran the script from ./scriptname.sh
+
 v1.3.21
 - Bug fix for false "This script is NOT running on a Synology NAS!" if uname is installed from Entware.
 

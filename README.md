@@ -48,6 +48,7 @@ For Xpenology users the script supports an unlimited number of NVMe drives for R
 | DS423+       | DSM 7.1.1-42962 Update 4 |           |
 | DS3622xs+    | DSM 7.2-64216 Beta       | E10M20-T1 |
 | DS3622xs+    | DSM 7.1.1-42962 Update 1 |           |
+| DS1522+      | DSM 7.2.1-69057 Update 4 |           |
 | DS1522+      | DSM 7.2-64570            |           |
 | DS1522+      | DSM 7.1.1-42962 Update 4 |           |
 | DS1821+      | DSM 7.2.1-69057 Update 4 | E10M20-T1 | Also needs [Synology enable_M2_card](https://github.com/007revad/Synology_enable_M2_card) |

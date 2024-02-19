@@ -80,7 +80,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.3.22"
+scriptver="v1.3.23"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 scriptname=syno_create_m2_volume
@@ -149,7 +149,7 @@ createpartition(){
         if [[ $dryrun == "yes" ]]; then
             echo "synopartition --part /dev/$1 $synopartindex" >&2  # dryrun
         else
-            if ! synopartition --part /dev/"$1" "$synopartindex"; then
+            if ! /usr/syno/bin/synopartition --part /dev/"$1" "$synopartindex"; then
                 echo -e "\n${Error}ERROR 5${Off} Failed to create syno partitions!" >&2
                 exit 1
             fi
@@ -213,7 +213,7 @@ selectdisk(){
 
 showsteps(){ 
     echo -e "\n${Cyan}Steps you need to do after running this script:${Off}" >&2
-    major=$(get_key_value /etc.defaults/VERSION major)
+    major=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION major)
     if [[ $major -gt "6" ]]; then
         cat <<EOF
   1. After the restart go to Storage Manager and select online assemble:
@@ -305,8 +305,8 @@ fi
 echo "$script $scriptver"
 
 # Get DSM major and minor versions
-dsm=$(get_key_value /etc.defaults/VERSION majorversion)
-dsminor=$(get_key_value /etc.defaults/VERSION minorversion)
+dsm=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION majorversion)
+dsminor=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION minorversion)
 # shellcheck disable=SC2034
 if [[ $dsm -gt "6" ]] && [[ $dsminor -gt "1" ]]; then
     dsm72="yes"
@@ -321,10 +321,10 @@ hwrevision=$(cat /proc/sys/kernel/syno_hw_revision)
 if [[ $hwrevision =~ r[0-9] ]]; then showhwrev=" $hwrevision"; fi
 
 # Get DSM full version
-productversion=$(get_key_value /etc.defaults/VERSION productversion)
-buildphase=$(get_key_value /etc.defaults/VERSION buildphase)
-buildnumber=$(get_key_value /etc.defaults/VERSION buildnumber)
-smallfixnumber=$(get_key_value /etc.defaults/VERSION smallfixnumber)
+productversion=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION productversion)
+buildphase=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION buildphase)
+buildnumber=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION buildnumber)
+smallfixnumber=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION smallfixnumber)
 
 # Show DSM full version and model
 if [[ $buildphase == GM ]]; then buildphase=""; fi
@@ -333,7 +333,7 @@ echo -e "${model}$showhwrev DSM $productversion-$buildnumber$smallfix $buildphas
 
 
 # Get StorageManager version
-storagemgrver=$(synopkg version StorageManager)
+storagemgrver=$(/usr/syno/bin/synopkg version StorageManager)
 # Show StorageManager version
 if [[ $storagemgrver ]]; then echo -e "StorageManager $storagemgrver\n"; fi
 
@@ -960,7 +960,7 @@ fi
 #if [[ $dsm72 == "yes" ]]; then
 if [[ $dsm71 == "yes" ]]; then
     smp=support_m2_pool
-    setting="$(get_key_value "$synoinfo" "$smp")"
+    setting="$(/usr/syno/bin/synogetkeyvalue "$synoinfo" "$smp")"
     enabled=""
     if [[ ! $setting ]]; then
         # Add support_m2_pool="yes"
@@ -969,14 +969,14 @@ if [[ $dsm71 == "yes" ]]; then
     elif [[ $setting == "no" ]]; then
         # Change support_m2_pool="no" to "yes"
         #sed -i "s/${smp}=\"no\"/${smp}=\"yes\"/" "$synoinfo"
-        synosetkeyvalue "$synoinfo" "$smp" "yes"
+        /usr/syno/bin/synosetkeyvalue "$synoinfo" "$smp" "yes"
         enabled="yes"
     elif [[ $setting == "yes" ]]; then
         echo -e "\nM.2 volume support already enabled."
     fi
 
     # Check if we enabled m2 volume support
-    setting="$(get_key_value "$synoinfo" "$smp")"
+    setting="$(/usr/syno/bin/synogetkeyvalue "$synoinfo" "$smp")"
     if [[ $enabled == "yes" ]]; then
         if [[ $setting == "yes" ]]; then
             echo -e "\nEnabled M.2 volume support."

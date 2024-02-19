@@ -1,3 +1,6 @@
+v1.3.23
+- Hard coded /usr/syno/bin/ for Synology commands (to prevent $PATH issues).
+
 v1.3.22
 - Bug fix when script updates itself and user ran the script from ./scriptname.sh
 

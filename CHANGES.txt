@@ -1,3 +1,6 @@
+v1.3.24
+- Bug fix for /usr/syno/bin/synopartition no such file or directory. Issue #128
+
 v1.3.23
 - Hard coded /usr/syno/bin/ for Synology commands (to prevent $PATH issues).
 

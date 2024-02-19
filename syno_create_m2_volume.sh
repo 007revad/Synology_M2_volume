@@ -80,7 +80,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.3.23"
+scriptver="v1.3.24"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 scriptname=syno_create_m2_volume
@@ -149,7 +149,7 @@ createpartition(){
         if [[ $dryrun == "yes" ]]; then
             echo "synopartition --part /dev/$1 $synopartindex" >&2  # dryrun
         else
-            if ! /usr/syno/bin/synopartition --part /dev/"$1" "$synopartindex"; then
+            if ! /usr/syno/sbin/synopartition --part /dev/"$1" "$synopartindex"; then
                 echo -e "\n${Error}ERROR 5${Off} Failed to create syno partitions!" >&2
                 exit 1
             fi

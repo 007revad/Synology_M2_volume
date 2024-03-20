@@ -80,7 +80,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.3.24"
+scriptver="v1.3.25"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 scriptname=syno_create_m2_volume
@@ -792,7 +792,7 @@ sleep 1
 # Get highest md# mdraid device
 
 # Using "md[0-9]{1,2}" to avoid md126 and md127 etc
-lastmd=$(grep -oP "md[0-9]{1,2}" "/proc/mdstat" | sort | tail -1)
+lastmd=$(grep -oP "md[0-9]{1,2}" "/proc/mdstat" | sort -n -k1.3 | tail -1)
 nextmd=$((${lastmd:2} +1))
 if [[ -z $nextmd ]]; then
     ding

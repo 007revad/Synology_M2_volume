@@ -456,9 +456,23 @@ fi
 # Get list of M.2 drives
 
 getm2info(){ 
+    local nvme
+    local vendor
+    local pcislot
+    local cardslot
     nvmemodel=$(cat "$1/device/model")
     nvmemodel=$(printf "%s" "$nvmemodel" | xargs)  # trim leading/trailing space
-    echo "$2 M.2 $(basename -- "${1}") is $nvmemodel" >&2
+
+    vendor=$(synonvme --vendor-get "/dev/$(basename -- "${1}")")
+    vendor=" $(printf "%s" "$vendor" | cut -d":" -f2 | xargs)"
+    nvme=$(synonvme --get-location "/dev/$(basename -- "${1}")")
+    if [[ ! $nvme =~ "PCI Slot: 0" ]]; then
+        pcislot="$(echo "$nvme" | cut -d"," -f2 | awk '{print $NF}')-"
+    fi
+    cardslot="$(echo "$nvme" | awk '{print $NF}')"
+
+    #echo "$2 M.2 $(basename -- "${1}") is $nvmemodel" >&2
+    echo "$(basename -- "${1}") M.2 Drive $pcislot$cardslot -$vendor $nvmemodel" >&2
     dev="$(basename -- "${1}")"
 
     #echo "/dev/${dev}" >&2  # debug

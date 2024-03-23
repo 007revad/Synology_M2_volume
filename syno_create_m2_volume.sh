@@ -853,7 +853,7 @@ if [[ $drivecheck != "yes" ]]; then
     echo -e "\nCreating the RAID array..."
     #if ! synostgpool --create -t single -l $raidtype "${partargs[@]}"; then
 
-    synostgpool --create "$@" -l $raidtype "${partargs[@]}" &
+    synostgpool --create "$@" -l "$raidtype" "${partargs[@]}" &
     pid=$!
     wait "$pid"
     if [[ $? -gt "0" ]]; then
@@ -867,7 +867,7 @@ else
     echo -e "\nCreating the RAID array. This will take a while..."
     SECONDS=0  # To work out how long the resync took
     #if ! synostgpool --create -t single -l $raidtype -c "${partargs[@]}"; then
-    if ! synostgpool --create "$@" -l $raidtype -c "${partargs[@]}"; then
+    if ! synostgpool --create "$@" -l "$raidtype" -c "${partargs[@]}"; then
         echo "$? synostgpool failed to create storage pool!"
         exit 1
     fi

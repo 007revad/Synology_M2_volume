@@ -209,10 +209,6 @@ if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -a \
             -d|--debug)          # Show and log debug info
                 debug=yes
                 ;;
-            -r)                  # Simulate 4 NVMe drives for dry run testing
-                raid5=yes
-                dryrun=yes
-                ;;
             --)
                 shift
                 break

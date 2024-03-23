@@ -851,7 +851,7 @@ if [[ $pooltype == "single" ]]; then
 fi
 
 
-echo -e "\nStarting creation of the RAID array."
+echo -e "\nStarting creation of the storage pool."
 if [[ $drivecheck != "yes" ]]; then
     echo -e "\nCreating the RAID array..."
     #if ! synostgpool --create -t single -l $raidtype "${partargs[@]}"; then

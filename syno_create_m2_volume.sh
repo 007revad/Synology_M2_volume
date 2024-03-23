@@ -512,7 +512,9 @@ for d in /sys/block/*; do
         ;;
         nvc*)  # M.2 SATA drives (in PCIe card only?)
             if [[ $d =~ nvc[0-9][0-9]?$ ]]; then
-                getm2info "$d" "SATA"
+                #getm2info "$d" "SATA"
+                echo -e "${Cyan}Skipping SATA M.2 drive${Off}" >&2
+                echo -e "Use Synology_M2_volume v1 instead.\n" >&2
             fi
         ;;
         *)

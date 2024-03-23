@@ -35,53 +35,6 @@
 #   Added option to skip drive check.
 # v2 and later are for DSM 7 only.
 #   - For DSM 6 use v1 and do not use the auto update option.
-#
-#
-# Changed to not show RAID 1 when Single drive selected.
-# Changed so the Done choice only appears when enough drives have been selected.
-# Changed to say "This can take while" instead of "This can take an hour".
-#
-# Added support for RAID 6 and RAID 10 (thanks Raj)
-# Added support for an unlimited number of M.2 drives for RAID 0, 5, 6 and 10.
-#  https://kb.synology.com/en-in/DSM/tutorial/What_is_RAID_Group
-# Now shows how long the resync took.
-# The script now automatically reloads after updating itself.
-#
-# Added DSM 6 support (WIP)
-#
-# Added support for RAID 5
-# Changed to not include the 1st selected drive in the choices for 2nd drive etc.
-#
-# Fixed "download new version" failing if script was run via symlink or ./<scriptname>
-#
-# Check for errors from synopartition, mdadm, pvcreate and vgcreate 
-#   so the script doesn't continue and appear to have succeeded.
-#
-# Changed "pvcreate" to "pvcreate -ff" to avoid issues.
-#
-# Changed latest version check to download to /tmp and extract files to the script's location,
-# replacing the existing .sh and readme.txt files.
-#
-# Added single progress bar for the resync progress.
-#
-# Added options:
-#  -a, --all        List all M.2 drives even if detected as active
-#  -s, --steps      Show the steps to do after running this script
-#  -h, --help       Show this help message
-#  -v, --version    Show the script version
-#
-# Added -s, --steps option to show required steps after running script.
-#
-# Show DSM version and NAS model (to make it easier to debug)
-# Changed for DSM 7.2 and older DSM version:
-# - For DSM 7.x
-#   - Ensures m2 volume support is enabled.
-#   - Creates RAID and storage pool only.
-# - For DSM 6.2.4 and earlier
-#   - Creates RAID, storage pool and volume.
-#
-#
-# Allow specifying the size of the volume to leave unused space for drive wear management.
 
 
 scriptver="v2.0.26"
@@ -553,31 +506,6 @@ for d in /sys/block/*; do
     esac
 done
 
- 
-##echo -e "\n${m2list[@]}\n"                      # test ############################################
-#                                                 # test ############################################
-## Test with 2 extra fake drives                  # test ############################################
-#host=$(cat /etc/hostname)                        # test ############################################
-#if [[ ${host,,} =~ (senna|diskstation) ]]; then  # test ############################################
-#    if [[ $debug == "yes" ]]; then               # test ############################################
-#        m2list+=("nvme2n1")                      # test ############################################
-#        m2list+=("nvme3n1")                      # test ############################################
-#        m2list+=("nvme4n1")                      # test ############################################
-#        m2list+=("nvme5n1")                      # test ############################################
-#        m2list+=("nvme6n1")                      # test ############################################
-#        m2list+=("nvme7n1")                      # test ############################################
-#        m2list+=("nvme8n1")                      # test ############################################
-#        m2list+=("nvme9n1")                      # test ############################################
-#        m2list+=("nvme10n1")                     # test ############################################
-#        m2list+=("nvme11n1")                     # test ############################################
-#    fi                                           # test ############################################
-#fi                                               # test ############################################
-#                                                 # test ############################################
-##echo -e "\n${m2list[@]}\n"                      # test ############################################
-
-
-
-#echo -e "Inactive M.2 drives found: ${#m2list[@]}\n"
 echo -e "Unused M.2 drives found: ${#m2list[@]}\n"
 
 #echo -e "NVMe list: ${m2list[@]}\n"  # debug
@@ -671,25 +599,17 @@ if [[ ${#m2list[@]} -gt "0" ]]; then
             ;;
       esac
     done
-    #if [[ $single == "yes" ]]; then
-    #    echo -e "You selected ${Cyan}Single${Off}"
-    #else
-        echo -e "You selected ${Cyan}$raidtype${Off}"
-    #fi
-    echo
+    echo -e "You selected ${Cyan}$raidtype${Off}\n"
 elif [[ ${#m2list[@]} -eq "1" ]]; then
-    #raidtype="1"
     single="yes"
 fi
 
+# Only Basic and RAID 1 have a limit on the number of drives in DSM 7 and 6
+# Later we set maxdisk to the number of M.2 drives found if not Single or RAID 1
 if [[ $single == "yes" ]]; then
     maxdisk=1
 elif [[ $raidtype == "raid1" ]]; then
     maxdisk=4
-#else
-    # Only Basic and RAID 1 have a limit on the number of drives in DSM 7 and 6
-    # Later we set maxdisk to the number of M.2 drives found if not Single or RAID 1
-#    maxdisk=24
 fi
 
 
@@ -853,8 +773,7 @@ fi
 
 echo -e "\nStarting creation of the storage pool."
 if [[ $drivecheck != "yes" ]]; then
-    echo -e "\nCreating the RAID array..."
-    #if ! synostgpool --create -t single -l $raidtype "${partargs[@]}"; then
+    #if ! synostgpool --create "$@" -l $raidtype "${partargs[@]}"; then
 
     synostgpool --create "$@" -l "$raidtype" "${partargs[@]}" &
     pid=$!
@@ -863,16 +782,12 @@ if [[ $drivecheck != "yes" ]]; then
         echo "$? synostgpool failed to create storage pool!"
         exit 1
     fi
-
-    #echo "synostgpool --create -t single -l $raidtype ${partargs[@]}"  # debug
     #echo "synostgpool --create $@ -l $raidtype ${partargs[@]}"  # debug
 else
-    #if ! synostgpool --create -t single -l $raidtype -c "${partargs[@]}"; then
     if ! synostgpool --create "$@" -l "$raidtype" -c "${partargs[@]}"; then
         echo "$? synostgpool failed to create storage pool!"
         exit 1
     fi
-    #echo "synostgpool --create -t single -l $raidtype -c ${partargs[@]}"  # debug
     #echo "synostgpool --create $@ -l $raidtype -c ${partargs[@]}"  # debug
 fi
 

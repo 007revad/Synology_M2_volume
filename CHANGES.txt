@@ -6,6 +6,8 @@ v2.0.26
 - Added option to skip drive check.
 - v2 and later are for DSM 7 only.
   - For DSM 6 use v1 without the auto update option.
+- v2 and later no longer support SATA M.2 drives.
+  - Use v1 without the auto update option.
 
 v1.3.25
 - Bug fix for when there's more than 9 md block devices. Issue #133

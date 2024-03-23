@@ -673,9 +673,9 @@ if [[ ${#m2list[@]} -gt "0" ]]; then
         echo -e "You selected ${Cyan}$raidtype${Off}"
     #fi
     echo
-#elif [[ ${#m2list[@]} -eq "1" ]]; then
-#    raidtype="1"
-#    single="yes"
+elif [[ ${#m2list[@]} -eq "1" ]]; then
+    #raidtype="1"
+    single="yes"
 fi
 
 if [[ $single == "yes" ]]; then

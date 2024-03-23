@@ -201,22 +201,26 @@ selectdisk(){
 
 
 showsteps(){ 
-    echo -e "\n${Cyan}Steps you need to do after running this script:${Off}" >&2
     major=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION major)
     if [[ $major -gt "6" ]]; then
+        if [[ $pooltype == "single" ]]; then
+            echo -e "\n${Cyan}When storage manager has finished checking the drive(s):${Off}"
+        else
+            echo -e "\n${Cyan}When storage manager has finished creating the storage pool:${Off}"
+        fi
         cat <<EOF
   1. Create the volume as you normally would:
        Select the new Storage Pool > Create > Create Volume
   2. Optionally enable TRIM:
        Storage Pool > ... > Settings > SSD TRIM
 EOF
-    echo -e "\n${Error}Important${Off}" >&2
-    cat <<EOF
+        echo -e "\n${Error}Important${Off}" >&2
+        cat <<EOF
 If you later upgrade DSM and your M.2 drives are shown as unsupported
 and the storage pool is shown as missing, and online assemble fails,
 you should run the Synology HDD db script:
 EOF
-    echo -e "${Cyan}https://github.com/007revad/Synology_HDD_db${Off}\n" >&2
+        echo -e "${Cyan}https://github.com/007revad/Synology_HDD_db${Off}\n" >&2
     fi
     #return
 }
@@ -703,13 +707,11 @@ select pool in "${options[@]}"; do
     #"Multi Volume (default)")
     "Multi Volume (DSM 7 default)")
         pooltype="multi"
-        singlevol=""
         break
         ;;
     #"Single Volume (easier recovery)")
     "Single Volume")
         pooltype="single"
-        singlevol="yes"
         break
         ;;
     Quit)
@@ -849,6 +851,7 @@ if [[ $pooltype == "single" ]]; then
 fi
 
 
+echo -e "\nStarting creation of the RAID array."
 if [[ $drivecheck != "yes" ]]; then
     echo -e "\nCreating the RAID array..."
     #if ! synostgpool --create -t single -l $raidtype "${partargs[@]}"; then
@@ -864,8 +867,6 @@ if [[ $drivecheck != "yes" ]]; then
     #echo "synostgpool --create -t single -l $raidtype ${partargs[@]}"  # debug
     #echo "synostgpool --create $@ -l $raidtype ${partargs[@]}"  # debug
 else
-    echo -e "\nCreating the RAID array. This will take a while..."
-    SECONDS=0  # To work out how long the resync took
     #if ! synostgpool --create -t single -l $raidtype -c "${partargs[@]}"; then
     if ! synostgpool --create "$@" -l "$raidtype" -c "${partargs[@]}"; then
         echo "$? synostgpool failed to create storage pool!"
@@ -873,28 +874,6 @@ else
     fi
     #echo "synostgpool --create -t single -l $raidtype -c ${partargs[@]}"  # debug
     #echo "synostgpool --create $@ -l $raidtype -c ${partargs[@]}"  # debug
-
-    # Show resync progress every 5 seconds
-    while grep resync /proc/mdstat >/dev/null; do
-        # Only multi-drive RAID gets re-synced
-        progress="$(grep -E -A 2 active.*nvme /proc/mdstat | grep resync | cut -d\( -f1 )"
-        echo -ne "$progress\r"
-        sleep 5
-    done
-    # Show 100% progress
-    if [[ $progress ]]; then
-        echo -ne "      [====================>]  resync = 100%\r"
-    fi
-
-    # Show how long the resync took
-    end=$SECONDS
-    if [[ $end -ge 3600 ]]; then
-        printf '\nResync Duration: %d hr %d min\n' $((end/3600)) $((end%3600/60))
-    elif [[ $end -ge 60 ]]; then
-        echo -e "\nResync Duration: $(( end / 60 )) min"
-    else
-        echo -e "\nResync Duration: $end sec"
-    fi
 fi
 
 

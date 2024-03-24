@@ -30,6 +30,7 @@ For [DSM 6 use v1](https://github.com/007revad/Synology_M2_volume/releases/tag/v
   - No longer need to reboot after running the script.
   - No longer need to do an online assemble.
 - Removed drive check progress as it was not possible with synostgpool.
+  - You can see the drive check progress in Storage Manager.
 - Removed dry run mode as it was not possible with synostgpool.
 - Removed support for SATA M.2 drives.
   - If you have SATA M.2 drives [use v1](https://github.com/007revad/Synology_M2_volume/releases/tag/v1.3.25) and run **without** the auto update option.

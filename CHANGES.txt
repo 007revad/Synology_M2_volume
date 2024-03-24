@@ -1,14 +1,16 @@
 v2.0.26
 - v2 and later are for DSM 7 only.
   - For DSM 6 use v1 without the auto update option.
-- Now shows "M.2 Drive number" the same as storage manager.
-- Changed to use synostgpool so reboot and online assemble are not needed. Thanks to Severe_Pea_2128 on reddit.
-- Added support for JBOD, SHR, SHR2 and RAID F1.
-- Added choice of multi-volume or single-volume storage pool.
-- Added option to skip drive check.
+- Now shows "M.2 Drive #" the same as storage manager.
+- Now uses synostgpool command which allows the following: (Thanks to Severe_Pea_2128 on reddit)
+  - Now supports JBOD, SHR, SHR2 and RAID F1.
+  - Added choice of multi-volume or single-volume storage pool.
+  - Added option to skip drive check.
+  - No longer need to reboot after running the script.
+  - No longer need to do an online assemble.
+- Removed drive check progress as it was not possible with synostgpool.
 - Removed dry run mode as it was not possible with synostgpool.
-- v2 and later no longer support SATA M.2 drives.
-  - Use v1 without the auto update option.
+- Removed support for SATA M.2 drives.
 
 v1.3.25
 - Bug fix for when there's more than 9 md block devices. Issue #133

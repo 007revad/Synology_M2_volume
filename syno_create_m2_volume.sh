@@ -4,7 +4,7 @@
 #
 # Github: https://github.com/007revad/Synology_M2_volume
 # Script verified at https://www.shellcheck.net/
-# Tested on DSM 7.2 beta
+# Tested on DSM 7.2 and 7.2.1
 #
 # To run in a shell (replace /volume1/scripts/ with path to script):
 # sudo /volume1/scripts/create_m2_volume.sh
@@ -15,6 +15,9 @@
 #
 # Over-Provisioning unnecessary on modern SSDs (since ~2014)
 # https://easylinuxtipsproject.blogspot.com/p/ssd.html#ID16.2
+#
+# Use synostgpool instead of synopartition, mdadm and lvm
+# https://www.reddit.com/r/synology/comments/17vn96n/how_to_trigger_the_online_assemble_prompt_without/
 #-----------------------------------------------------------------------------------
 
 # TODO
@@ -25,62 +28,21 @@
 # Add option to repair damaged array? DSM can probably handle this.
 
 # DONE
-# Changed to not show RAID 1 when Single drive selected.
-# Changed so the Done choice only appears when enough drives have been selected.
-# Changed to say "This can take while" instead of "This can take an hour".
-#
-# Added support for RAID 6 and RAID 10 (thanks Raj)
-# Added support for an unlimited number of M.2 drives for RAID 0, 5, 6 and 10.
-#  https://kb.synology.com/en-in/DSM/tutorial/What_is_RAID_Group
-# Now shows how long the resync took.
-# The script now automatically reloads after updating itself.
-#
-# Added DSM 6 support (WIP)
-#
-# Added support for RAID 5
-# Changed to not include the 1st selected drive in the choices for 2nd drive etc.
-#
-# Fixed "download new version" failing if script was run via symlink or ./<scriptname>
-#
-# Check for errors from synopartition, mdadm, pvcreate and vgcreate 
-#   so the script doesn't continue and appear to have succeeded.
-#
-# Changed "pvcreate" to "pvcreate -ff" to avoid issues.
-#
-# Changed latest version check to download to /tmp and extract files to the script's location,
-# replacing the existing .sh and readme.txt files.
-#
-# Added single progress bar for the resync progress.
-#
-# Added options:
-#  -a, --all        List all M.2 drives even if detected as active
-#  -s, --steps      Show the steps to do after running this script
-#  -h, --help       Show this help message
-#  -v, --version    Show the script version
-#
-# Added -s, --steps option to show required steps after running script.
-#
-# Show DSM version and NAS model (to make it easier to debug)
-# Changed for DSM 7.2 and older DSM version:
-# - For DSM 7.x
-#   - Ensures m2 volume support is enabled.
-#   - Creates RAID and storage pool only.
-# - For DSM 6.2.4 and earlier
-#   - Creates RAID, storage pool and volume.
-#
-#
-# Allow specifying the size of the volume to leave unused space for drive wear management.
-#
-# Instead of creating the filesystem directly on the mdraid device, you can use LVM to create a PV on it,
-# and a VG, and then use the UI to create volume(s), making it more "standard" to what DSM would do.
-# https://systemadmintutorial.com/how-to-configure-lvm-in-linuxpvvglv/
-#
-# Physical Volume (PV): Consists of Raw disks or RAID arrays or other storage devices.
-# Volume Group (VG): Combines the physical volumes into storage groups.
-# Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
+# Thanks to Severe_Pea_2128 on reddit:
+#   Changed to use synostgpool so reboot and online assemble are not needed.
+#   Added support for JBOD, SHR, SHR2 and RAID F1.
+#   Added choice of multi-volume or single-volume storage pool.
+#   Added option to skip drive check.
+# v2 and later are for DSM 7 only.
+#   - For DSM 6 use v1 and do not use the auto update option.
 
 
-scriptver="v1.3.25"
+# m2list_assoc contains associative array of [M.2 Drive #]=nvme#n#
+# m2list array contains list of "M.2 Drive #"
+# mdisk array contains list of selected nvme#n#
+
+
+scriptver="v2.0.26"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 scriptname=syno_create_m2_volume
@@ -143,20 +105,7 @@ EOF
 }
 
 
-createpartition(){ 
-    if [[ $1 ]]; then
-        echo -e "\nCreating Synology partitions on $1" >&2
-        if [[ $dryrun == "yes" ]]; then
-            echo "synopartition --part /dev/$1 $synopartindex" >&2  # dryrun
-        else
-            if ! /usr/syno/sbin/synopartition --part /dev/"$1" "$synopartindex"; then
-                echo -e "\n${Error}ERROR 5${Off} Failed to create syno partitions!" >&2
-                exit 1
-            fi
-        fi
-    fi
-}
-
+declare -A m2list_assoc=( )
 
 selectdisk(){ 
     if [[ ${#m2list[@]} -gt "0" ]]; then
@@ -187,6 +136,10 @@ selectdisk(){
 #                        selected_disk=""
 #                    fi
                     ;;
+                "M.2 Drive "*)
+                    selected_disk="$nvmes"
+                    break
+                    ;;
                 *)
                     echo -e "${Red}Invalid answer!${Off} Try again." >&2
                     selected_disk=""
@@ -195,7 +148,8 @@ selectdisk(){
         done
 
         if [[ $Done != "yes" ]] && [[ $selected_disk ]]; then
-            mdisk+=("$selected_disk")
+            #mdisk+=("$selected_disk")
+            mdisk+=("${m2list_assoc["$selected_disk"]}")
             # Remove selected drive from list of selectable drives
             remelement "$selected_disk"
             # Keep track of many drives user selected
@@ -212,25 +166,26 @@ selectdisk(){
 
 
 showsteps(){ 
-    echo -e "\n${Cyan}Steps you need to do after running this script:${Off}" >&2
     major=$(/usr/syno/bin/synogetkeyvalue /etc.defaults/VERSION major)
     if [[ $major -gt "6" ]]; then
+        if [[ $pooltype == "single" ]]; then
+            echo -e "\n${Cyan}When storage manager has finished checking the drive(s):${Off}"
+        else
+            echo -e "\n${Cyan}When storage manager has finished creating the storage pool:${Off}"
+        fi
         cat <<EOF
-  1. After the restart go to Storage Manager and select online assemble:
-       Storage Pool > Available Pool > Online Assemble
-  2. Create the volume as you normally would:
+  1. Create the volume as you normally would:
        Select the new Storage Pool > Create > Create Volume
-  3. Optionally enable TRIM:
+  2. Optionally enable TRIM:
        Storage Pool > ... > Settings > SSD TRIM
 EOF
-    echo -e "     ${Cyan}SSD TRIM option is only available in DSM 7.2 Beta for RAID 1${Off}" >&2
-    echo -e "\n${Error}Important${Off}" >&2
-    cat <<EOF
+        echo -e "\n${Error}Important${Off}" >&2
+        cat <<EOF
 If you later upgrade DSM and your M.2 drives are shown as unsupported
 and the storage pool is shown as missing, and online assemble fails,
 you should run the Synology HDD db script:
 EOF
-    echo -e "${Cyan}https://github.com/007revad/Synology_HDD_db${Off}\n" >&2
+        echo -e "${Cyan}https://github.com/007revad/Synology_HDD_db${Off}\n" >&2
     fi
     #return
 }
@@ -265,10 +220,6 @@ if options="$(getopt -o abcdefghijklmnopqrstuvwxyz0123456789 -a \
                 ;;
             -d|--debug)          # Show and log debug info
                 debug=yes
-                ;;
-            -r)                  # Simulate 4 NVMe drives for dry run testing
-                raid5=yes
-                dryrun=yes
                 ;;
             --)
                 shift
@@ -367,7 +318,7 @@ while [ -L "$source" ]; do # Resolve $source until the file is no longer a symli
 done
 scriptpath=$( cd -P "$( dirname "$source" )" >/dev/null 2>&1 && pwd )
 scriptfile=$( basename -- "$source" )
-echo "Running from: ${scriptpath}/$scriptfile"
+echo -e "Running from: ${scriptpath}/$scriptfile\n"
 
 #echo "Script location: $scriptpath"  # debug
 #echo "Source: $source"               # debug
@@ -499,18 +450,6 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
 fi
 
 
-echo -e "Type ${Cyan}yes${Off} to continue."\
-    "Type anything else to do a ${Cyan}dry run test${Off}."
-read -r answer
-if [[ ${answer,,} != "yes" ]]; then dryrun="yes"; fi
-if [[ $dryrun == "yes" ]]; then
-    echo -e "*** Doing a dry run test ***\n"
-    sleep 1  # Make sure they see they're running a dry run test
-else
-    echo
-fi
-
-
 #--------------------------------------------------------------------
 # Check there's no active resync
 
@@ -525,9 +464,23 @@ fi
 # Get list of M.2 drives
 
 getm2info(){ 
+    local nvme
+    local vendor
+    local pcislot
+    local cardslot
     nvmemodel=$(cat "$1/device/model")
     nvmemodel=$(printf "%s" "$nvmemodel" | xargs)  # trim leading/trailing space
-    echo "$2 M.2 $(basename -- "${1}") is $nvmemodel" >&2
+
+    vendor=$(synonvme --vendor-get "/dev/$(basename -- "${1}")")
+    vendor=" $(printf "%s" "$vendor" | cut -d":" -f2 | xargs)"
+    nvme=$(synonvme --get-location "/dev/$(basename -- "${1}")")
+    if [[ ! $nvme =~ "PCI Slot: 0" ]]; then
+        pcislot="$(echo "$nvme" | cut -d"," -f2 | awk '{print $NF}')-"
+    fi
+    cardslot="$(echo "$nvme" | awk '{print $NF}')"
+
+    #echo "$2 M.2 $(basename -- "${1}") is $nvmemodel" >&2
+    echo "$(basename -- "${1}") M.2 Drive $pcislot$cardslot -$vendor $nvmemodel" >&2
     dev="$(basename -- "${1}")"
 
     #echo "/dev/${dev}" >&2  # debug
@@ -544,17 +497,19 @@ getm2info(){
 
     if [[ -e /dev/${dev}p1 ]] && [[ -e /dev/${dev}p2 ]] &&\
             [[ -e /dev/${dev}p3 ]]; then
-        echo -e "${Cyan}WARNING Drive has a volume partition${Off}" >&2
+        echo -e "${Yellow}WARNING ${Cyan}Drive has a volume partition${Off}" >&2
         haspartitons="yes"
     elif [[ ! -e /dev/${dev}p3 ]] && [[ ! -e /dev/${dev}p2 ]] &&\
             [[ -e /dev/${dev}p1 ]]; then
-        echo -e "${Cyan}WARNING Drive has a cache partition${Off}" >&2
+        echo -e "${Yellow}WARNING ${Cyan}Drive has a cache partition${Off}" >&2
         haspartitons="yes"
     elif [[ ! -e /dev/${dev}p3 ]] && [[ ! -e /dev/${dev}p2 ]] &&\
             [[ ! -e /dev/${dev}p1 ]]; then
         echo "No existing partitions on drive" >&2
     fi
-    m2list+=("${dev}")
+    #m2list+=("${dev}")
+    m2list+=("M.2 Drive $pcislot$cardslot")
+    m2list_assoc["M.2 Drive $pcislot$cardslot"]="$dev"
     echo "" >&2
 }
 
@@ -567,7 +522,9 @@ for d in /sys/block/*; do
         ;;
         nvc*)  # M.2 SATA drives (in PCIe card only?)
             if [[ $d =~ nvc[0-9][0-9]?$ ]]; then
-                getm2info "$d" "SATA"
+                #getm2info "$d" "SATA"
+                echo -e "${Cyan}Skipping SATA M.2 drive${Off}" >&2
+                echo -e "Use Synology_M2_volume v1 instead.\n" >&2
             fi
         ;;
         *)
@@ -575,7 +532,6 @@ for d in /sys/block/*; do
     esac
 done
 
-#echo -e "Inactive M.2 drives found: ${#m2list[@]}\n"
 echo -e "Unused M.2 drives found: ${#m2list[@]}\n"
 
 #echo -e "NVMe list: ${m2list[@]}\n"  # debug
@@ -587,49 +543,77 @@ if [[ ${#m2list[@]} == "0" ]]; then exit; fi
 #--------------------------------------------------------------------
 # Select RAID type (if multiple M.2 drives found)
 
-if [[ ${#m2list[@]} -gt "1" ]]; then
+if [[ ${#m2list[@]} -gt "0" ]]; then
     PS3="Select the RAID type: "
-    if [[ ${#m2list[@]} -eq "2" ]]; then
-        options=("Single" "RAID 0" "RAID 1")
-    elif [[ ${#m2list[@]} -gt "2" ]]; then
-        options=("Single" "RAID 0" "RAID 1" "RAID 5" "RAID 6" "RAID 10")
+    if [[ ${#m2list[@]} -eq "1" ]]; then
+        options=("SHR 1" "Basic" "JBOD")
+    elif [[ ${#m2list[@]} -eq "2" ]]; then
+        options=("SHR 1" "Basic" "JBOD" "RAID 0" "RAID 1")
+    elif [[ ${#m2list[@]} -eq "3" ]]; then
+        options=("SHR 1" "Basic" "JBOD" "RAID 0" "RAID 1" "RAID 5" "RAID F1")
+    elif [[ ${#m2list[@]} -gt "3" ]]; then
+        options=("SHR 1" "SHR 2" "Basic" "JBOD" "RAID 0" "RAID 1" "RAID 5" "RAID 6" "RAID 10" "RAID F1")
     fi
     select raid in "${options[@]}"; do
       case "$raid" in
-        "Single")
-            raidtype="1"
+        Basic|Single)
+            raidtype="basic"
             single="yes"
             mindisk=1
             #maxdisk=1
             break
             ;;
+        JBOD)
+            raidtype="linear"
+            mindisk=1
+            #maxdisk=1
+            break
+            ;;
+        "SHR 1")
+            raidtype="SHR1"
+            mindisk=1
+            #maxdisk=1
+            break
+            ;;
+        "SHR 2")
+            raidtype="SHR2"
+            mindisk=4
+            #maxdisk=1
+            break
+            ;;
         "RAID 0")
-            raidtype="0"
+            raidtype="raid0"
             mindisk=2
             #maxdisk=24
             break
             ;;
         "RAID 1")
-            raidtype="1"
+            raidtype="raid1"
             mindisk=2
             #maxdisk=4
             break
             ;;
         "RAID 5")
-            raidtype="5"
+            raidtype="raid5"
             mindisk=3
             #maxdisk=24
             break
             ;;
         "RAID 6")
-            raidtype="6"
+            raidtype="raid6"
             mindisk=4
             #maxdisk=24
             break
             ;;
         "RAID 10")
-            raidtype="10"
+            raidtype="raid10"
             mindisk=4
+            #maxdisk=24
+            break
+            ;;
+        "RAID F1")
+            raidtype="raid_f1"
+            mindisk=3
             #maxdisk=24
             break
             ;;
@@ -641,26 +625,51 @@ if [[ ${#m2list[@]} -gt "1" ]]; then
             ;;
       esac
     done
-    if [[ $single == "yes" ]]; then
-        echo -e "You selected ${Cyan}Single${Off}"
-    else
-        echo -e "You selected ${Cyan}RAID $raidtype${Off}"
-    fi
-    echo
+    echo -e "You selected ${Cyan}$raidtype${Off}\n"
 elif [[ ${#m2list[@]} -eq "1" ]]; then
-    raidtype="1"
     single="yes"
 fi
 
+# Only Basic and RAID 1 have a limit on the number of drives in DSM 7 and 6
+# Later we set maxdisk to the number of M.2 drives found if not Single or RAID 1
 if [[ $single == "yes" ]]; then
     maxdisk=1
-elif [[ $raidtype == "1" ]]; then
+elif [[ $raidtype == "raid1" ]]; then
     maxdisk=4
-#else
-    # Only Basic and RAID 1 have a limit on the number of drives in DSM 7 and 6
-    # Later we set maxdisk to the number of M.2 drives found if not Single or RAID 1
-#    maxdisk=24
 fi
+
+
+# Ask user if they want to create a multi-volume pool
+echo -e "You have a choice of Multi Volume or Single Volume Storage Pool"
+echo -e " - Multi Volume Storage Pools allow creating multiple volumes and"
+echo -e "   allow you to over provision to make the NVMe drive(s) last longer."
+echo -e " - Single Volume Storage Pools are easier to recover data from"
+echo -e "   and perform slightly faster.\n"
+PS3="Select the storage pool type: "
+#options=("Multi Volume (default)" "Single Volume (easier recovery)")
+options=("Multi Volume (DSM 7 default)" "Single Volume")
+select pool in "${options[@]}"; do
+  case "$pool" in
+    #"Multi Volume (default)")
+    "Multi Volume (DSM 7 default)")
+        pooltype="multi"
+        break
+        ;;
+    #"Single Volume (easier recovery)")
+    "Single Volume")
+        pooltype="single"
+        break
+        ;;
+    Quit)
+        exit
+        ;;
+    *)
+        echo -e "${Red}Invalid answer!${Off} Try again."
+        ;;
+  esac
+done
+echo -e "You selected ${Cyan}${pooltype^} Volume${Off} storage pool"
+echo
 
 
 #--------------------------------------------------------------------
@@ -675,7 +684,6 @@ getindex(){
     done
     return "$r"
 }
-
 
 remelement(){ 
     # Remove selected drive from list of other selectable drives
@@ -706,7 +714,7 @@ mdisk=(  )
 
 # Set maxdisk to the number of M.2 drives found if not Single or RAID 1
 # Only Basic and RAID 1 have a limit on the number of drives in DSM 7 and 6
-if [[ $single != "yes" ]] && [[ $raidtype != "1" ]]; then
+if [[ $single != "yes" ]] && [[ $raidtype != "raid1" ]]; then
     maxdisk="${#m2list[@]}"
 fi
 
@@ -730,52 +738,29 @@ fi
 
 
 #--------------------------------------------------------------------
-# Select file system - only DSM 6.2.4 and lower
+# Ask user if they want to do a drive check
 
-if [[ $dsm == "6" ]]; then
-    PS3="Select the file system: "
-    select filesys in "btrfs" "ext4"; do
-        case "$filesys" in
-            btrfs)
-                echo -e "You selected ${Cyan}btrfs${Off}"  # debug
-                format="btrfs"
-                break
-                ;;
-            ext4)
-                echo -e "You selected ${Cyan}ext4${Off}"  # debug
-                format="ext4"
-                break
-                ;;
-            *)
-                echo -e "${Red}Invalid answer${Off}! Try again."
-                ;;
-        esac
-    done
-    #echo
+echo -e "Do you want perform a drive check? [y/n]"
+read -r answer
+if [[ ${answer,,} == "y" ]] || [[ ${answer,,} == "yes" ]]; then
+    drivecheck="yes"
 fi
 
 
 #--------------------------------------------------------------------
 # Let user confirm their choices
 
-if [[ $format == "btrfs" ]] || [[ $format == "ext4" ]]; then
-    formatshow="$format "
-fi
-
-if [[ $single == "yes" ]]; then
-    echo -en "Ready to create volume group using ${Cyan}${mdisk[*]}${Off}"
-else
-    echo -en "Ready to create ${Cyan}${formatshow}RAID $raidtype${Off} volume group using "
+#if [[ $single == "yes" ]]; then
+#    echo -en "Ready to create storage pool using ${Cyan}${mdisk[*]}${Off}"
+#else
+    #echo -en "\nReady to create ${Cyan}${raidtype^^}${Off} storage pool using "
+    echo -en "\nReady to create ${Cyan}$raid${Off} storage pool using "
     echo -e "${Cyan}${mdisk[*]}${Off}"
-fi
+#fi
 
 if [[ $haspartitons == "yes" ]]; then
     echo -e "\n${Red}WARNING${Off} Everything on the selected"\
         "M.2 drive(s) will be deleted."
-fi
-if [[ $dryrun == "yes" ]]; then
-    echo -e "        *** Not really because we're doing"\
-        "a ${Cyan}dry run${Off} ***"
 fi
 
 echo -e "Type ${Cyan}yes${Off} to continue. Type anything else to quit."
@@ -783,157 +768,50 @@ read -r answer
 if [[ ${answer,,} != "yes" ]]; then exit; fi
 
 
-# Abandon hope, all ye who enter here :)
-echo -e "You chose to continue. You are brave! :)\n"
-sleep 1
-
-
 #--------------------------------------------------------------------
-# Get highest md# mdraid device
+# Create storage pool on selected M.2 drives
 
-# Using "md[0-9]{1,2}" to avoid md126 and md127 etc
-lastmd=$(grep -oP "md[0-9]{1,2}" "/proc/mdstat" | sort -n -k1.3 | tail -1)
-nextmd=$((${lastmd:2} +1))
-if [[ -z $nextmd ]]; then
-    ding
-    echo -e "${Error}ERROR${Off} Next md number not found!"
-    exit 1
-else
-    echo "Using md$nextmd as it's the next available."
-fi
+# Single volume storage pool (DSM 6 style pool on md#)
+# synostgpool --create -t single -l basic /dev/nvme0n1
+# synostgpool --create -t single -l raid5 /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1
 
+# Multiple volume storage pool (DSM 7 style pool on vg#)
+# synostgpool --create -l basic /dev/nvme0n1
+# synostgpool --create -l raid5 /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1
 
-#--------------------------------------------------------------------
-# Create Synology partitions on selected M.2 drives
-
-if [[ $dsm == "7" ]]; then
-    synopartindex=13  # Syno partition index for NVMe drives can be 12 or 13 or ?
-else
-    synopartindex=12  # Syno partition index for NVMe drives can be 12 or 13 or ?
-fi
 
 partargs=(  )
-for i in "${mdisk[@]}"
-do
+for i in "${mdisk[@]}"; do
    :
-   createpartition "$i"
    partargs+=(
-       /dev/"${i}"p3
+       /dev/"${i}"
    )
 done
 
+if [[ $pooltype == "single" ]]; then
+    # Unset existing arguments
+    while [[ $1 ]]; do shift; done
+    # Set -t single arguments
+    set -- "$@" "-t"
+    set -- "$@" "single"
+fi
 
-#--------------------------------------------------------------------
-# Create the RAID array
-# --level=0 for RAID 0  --level=1 for RAID 1  --level=5 for RAID 5
 
-#if [[ $raidtype ]]; then
+echo -e "\nStarting creation of the storage pool."
+if [[ $drivecheck != "yes" ]]; then
+    #if ! synostgpool --create -l $raidtype "${partargs[@]}"; then
 
-SECONDS=0  # To work out how long the resync took
-
-echo -e "\nCreating the RAID array. This will take a while..."
-if [[ $dryrun == "yes" ]]; then
-    echo "mdadm --create /dev/md${nextmd} --level=${raidtype} --raid-devices=$selected"\
-        --force "${partargs[@]}"                # dryrun
-else
-    if ! mdadm --create /dev/md"${nextmd}" --level="${raidtype}" --raid-devices="$selected"\
-        --force "${partargs[@]}"; then
-            ding
-        echo -e "\n${Error}ERROR 5${Off} Failed to create RAID!"
+    synostgpool --create -l "$raidtype" "${partargs[@]}" &
+    pid=$!
+    wait "$pid"
+    if [[ $? -gt "0" ]]; then
+        echo "$? synostgpool failed to create storage pool!"
         exit 1
     fi
-fi
-
-# Show resync progress every 5 seconds
-if [[ $dryrun == "yes" ]]; then
-    echo -ne "      [====>................]  resync = 20%\r"; sleep 1  # dryrun
-    echo -ne "      [========>............]  resync = 40%\r"; sleep 1  # dryrun
-    echo -ne "      [============>........]  resync = 60%\r"; sleep 1  # dryrun
-    echo -ne "      [================>....]  resync = 80%\r"; sleep 1  # dryrun
-    echo -ne "      [====================>]  resync = 100%\r\n"        # dryrun
 else
-    while grep resync /proc/mdstat >/dev/null; do
-        # Only multi-drive RAID gets re-synced
-        progress="$(grep -E -A 2 active.*nvme /proc/mdstat | grep resync | cut -d\( -f1 )"
-        echo -ne "$progress\r"
-        sleep 5
-    done
-    # Show 100% progress
-    if [[ $progress ]]; then
-        echo -ne "      [====================>]  resync = 100%\r"
-    fi
-fi
-
-# Show how long the resync took
-end=$SECONDS
-if [[ $end -ge 3600 ]]; then
-    printf '\nResync Duration: %d hr %d min\n' $((end/3600)) $((end%3600/60))
-elif [[ $end -ge 60 ]]; then
-    echo -e "\nResync Duration: $(( end / 60 )) min"
-else
-    echo -e "\nResync Duration: $end sec"
-fi
-
-
-#--------------------------------------------------------------------
-# Create Physical Volume and Volume Group with LVM - DSM 7 only
-
-# Create a physical volume (PV) on the partition
-if [[ $dsm -gt "6" ]]; then
-    echo -e "\nCreating a physical volume (PV) on md$nextmd partition"
-    if [[ $dryrun == "yes" ]]; then
-        echo "pvcreate -ff /dev/md$nextmd"                              # dryrun
-    else
-        if ! pvcreate -ff /dev/md$nextmd ; then
-            ding
-            echo -e "\n${Error}ERROR 5${Off} Failed to create physical volume!"
-            exit 1
-        fi
-    fi
-fi
-
-# Create a volume group (VG)
-if [[ $dsm -gt "6" ]]; then
-    echo -e "\nCreating a volume group (VG) on md$nextmd partition"
-    if [[ $dryrun == "yes" ]]; then
-        echo "vgcreate vg$nextmd /dev/md$nextmd"                        # dryrun
-    else
-        if ! vgcreate vg$nextmd /dev/md$nextmd ; then
-            ding
-            echo -e "\n${Error}ERROR 5${Off} Failed to create volume group!"
-            exit 1
-        fi
-    fi
-fi
-
-
-#--------------------------------------------------------------------
-# Format array - only DSM 6.2.4 and lower
-
-if [[ $dsm == "6" ]]; then
-    if [[ $format == "btrfs" ]]; then
-        if [[ $dryrun == "yes" ]]; then
-            echo "echo 0 > /sys/block/md${nextmd}/queue/rotational"  # dryrun
-            echo "mkfs.btrfs -f /dev/md${nextmd}"                    # dryrun
-        else
-            # Ensure mkfs.btrfs sees raid as SSD and optimises file system for SSD
-            echo 0 > /sys/block/md${nextmd}/queue/rotational
-            # Format nvme#np2
-            mkfs.btrfs -f /dev/md${nextmd}
-        fi
-    elif [[ $format == "ext4" ]]; then
-        if [[ $dryrun == "yes" ]]; then
-            echo "echo 0 > /sys/block/md${nextmd}/queue/rotational"  # dryrun
-            echo "mkfs.ext4 -f /dev/md${nextmd}"                     # dryrun
-        else
-            # Ensure mkfs.ext4 sees raid as SSD and optimises file system for SSD
-            echo 0 > /sys/block/md${nextmd}/queue/rotational  # Is this valid for mkfs.ext4 ?
-            # Format nvme#np2
-            mkfs.ext4 -F /dev/md${nextmd}
-        fi
-    else
-        ding
-        echo "What file system did you select!?"; exit
+    if ! synostgpool --create "$@" -l "$raidtype" -c "${partargs[@]}"; then
+        echo "$? synostgpool failed to create storage pool!"
+        exit 1
     fi
 fi
 
@@ -981,7 +859,39 @@ if [[ $dsm71 == "yes" ]]; then
         if [[ $setting == "yes" ]]; then
             echo -e "\nEnabled M.2 volume support."
         else
-            echo -e "\n${Error}ERROR${Off} Failed to enable m2 volume support!"
+            echo -e "\n${Error}ERROR${Off} Failed to enable M.2 volume support!"
+        fi
+    fi
+fi
+
+# Check if RAID F1 support is enabled
+if [[ $raidtype == "raid_f1" ]]; then
+    #if [[ $dsm72 == "yes" ]]; then
+    if [[ $dsm71 == "yes" ]]; then
+        srf1=support_diffraid
+        setting="$(/usr/syno/bin/synogetkeyvalue "$synoinfo" "$srf1")"
+        enabled=""
+        if [[ ! $setting ]]; then
+            # Add support_diffraid="yes"
+            echo 'support_diffraid="yes"' >> "$synoinfo"
+            enabled="yes"
+        elif [[ $setting == "no" ]]; then
+            # Change support_diffraid="no" to "yes"
+            #sed -i "s/${srf1}=\"no\"/${srf1}=\"yes\"/" "$synoinfo"
+            /usr/syno/bin/synosetkeyvalue "$synoinfo" "$srf1" "yes"
+            enabled="yes"
+        elif [[ $setting == "yes" ]]; then
+            echo -e "\nRAID F1 support already enabled."
+        fi
+
+        # Check if we enabled RAID F1 support
+        setting="$(/usr/syno/bin/synogetkeyvalue "$synoinfo" "$srf1")"
+        if [[ $enabled == "yes" ]]; then
+            if [[ $setting == "yes" ]]; then
+                echo -e "\nEnabled RAID F1 support."
+            else
+                echo -e "\n${Error}ERROR${Off} Failed to enable RAID F1 support!"
+            fi
         fi
     fi
 fi
@@ -992,29 +902,4 @@ fi
 
 echo
 showsteps  # Show the final steps to do in DSM
-
-
-#--------------------------------------------------------------------
-# Reboot
-
-echo -e "\n${Cyan}Online assemble option may not appear in storage manager"\
-    "until you reboot.${Off}"
-echo -e "Type ${Cyan}yes${Off} to reboot now."
-echo -e "Type anything else to quit (if you will reboot it yourself)."
-read -r answer
-if [[ ${answer,,} != "yes" ]]; then exit; fi
-if [[ $dryrun == "yes" ]]; then
-    echo "reboot"  # dryrun
-else
-#    # Reboot in the background so user can see DSM's "going down" message
-#    reboot &
-    if [[ -x /usr/syno/sbin/synopoweroff ]]; then
-        /usr/syno/sbin/synopoweroff -r || reboot
-    else
-        reboot
-    fi
-fi
-
-
-#exit  # Don't exit so user can see DSM's "going down" message
 

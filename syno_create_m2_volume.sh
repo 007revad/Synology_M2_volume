@@ -799,22 +799,20 @@ fi
 
 echo -e "\nStarting creation of the storage pool."
 if [[ $drivecheck != "yes" ]]; then
-    #if ! synostgpool --create "$@" -l $raidtype "${partargs[@]}"; then
+    #if ! synostgpool --create -l $raidtype "${partargs[@]}"; then
 
-    synostgpool --create "$@" -l "$raidtype" "${partargs[@]}" &
+    synostgpool --create -l "$raidtype" "${partargs[@]}" &
     pid=$!
     wait "$pid"
     if [[ $? -gt "0" ]]; then
         echo "$? synostgpool failed to create storage pool!"
         exit 1
     fi
-    #echo "synostgpool --create $@ -l $raidtype ${partargs[@]}"  # debug
 else
     if ! synostgpool --create "$@" -l "$raidtype" -c "${partargs[@]}"; then
         echo "$? synostgpool failed to create storage pool!"
         exit 1
     fi
-    #echo "synostgpool --create $@ -l $raidtype -c ${partargs[@]}"  # debug
 fi
 
 
@@ -861,7 +859,39 @@ if [[ $dsm71 == "yes" ]]; then
         if [[ $setting == "yes" ]]; then
             echo -e "\nEnabled M.2 volume support."
         else
-            echo -e "\n${Error}ERROR${Off} Failed to enable m2 volume support!"
+            echo -e "\n${Error}ERROR${Off} Failed to enable M.2 volume support!"
+        fi
+    fi
+fi
+
+# Check if RAID F1 support is enabled
+if [[ $raidtype == "raid_f1" ]]; then
+    #if [[ $dsm72 == "yes" ]]; then
+    if [[ $dsm71 == "yes" ]]; then
+        srf1=support_diffraid
+        setting="$(/usr/syno/bin/synogetkeyvalue "$synoinfo" "$srf1")"
+        enabled=""
+        if [[ ! $setting ]]; then
+            # Add support_diffraid="yes"
+            echo 'support_diffraid="yes"' >> "$synoinfo"
+            enabled="yes"
+        elif [[ $setting == "no" ]]; then
+            # Change support_diffraid="no" to "yes"
+            #sed -i "s/${srf1}=\"no\"/${srf1}=\"yes\"/" "$synoinfo"
+            /usr/syno/bin/synosetkeyvalue "$synoinfo" "$srf1" "yes"
+            enabled="yes"
+        elif [[ $setting == "yes" ]]; then
+            echo -e "\nRAID F1 support already enabled."
+        fi
+
+        # Check if we enabled RAID F1 support
+        setting="$(/usr/syno/bin/synogetkeyvalue "$synoinfo" "$srf1")"
+        if [[ $enabled == "yes" ]]; then
+            if [[ $setting == "yes" ]]; then
+                echo -e "\nEnabled RAID F1 support."
+            else
+                echo -e "\n${Error}ERROR${Off} Failed to enable RAID F1 support!"
+            fi
         fi
     fi
 fi

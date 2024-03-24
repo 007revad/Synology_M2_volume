@@ -4,7 +4,7 @@ v2.0.26
 - Now shows "M.2 Drive #" the same as storage manager.
 - Now uses synostgpool command which allows the following: (Thanks to Severe_Pea_2128 on reddit)
   - Now supports JBOD, SHR, SHR2 and RAID F1.
-  - Added choice of multi-volume or single-volume storage pool.
+  - Added choice of multi-volume or single-volume storage pool. Multi-volume allows overprovisioning.
   - Added option to skip drive check.
   - No longer need to reboot after running the script.
   - No longer need to do an online assemble.

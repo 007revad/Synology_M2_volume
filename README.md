@@ -178,7 +178,6 @@ If the script won't run check the following:
 
 ### What to do after running the script
 
-**DSM 7**
 1. Create the volume as you normally would:
     - Select the new Storage Pool > Create > Create Volume.
     - Set the allocated size.

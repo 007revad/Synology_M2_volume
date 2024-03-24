@@ -22,19 +22,23 @@
 
 # TODO
 # Better detection if DSM is using the drive.
-# Show drive names the same as DSM does.
-# Support SATA M.2 drives.
 # Maybe add logging.
 # Add option to repair damaged array? DSM can probably handle this.
 
 # DONE
-# Thanks to Severe_Pea_2128 on reddit:
-#   Changed to use synostgpool so reboot and online assemble are not needed.
-#   Added support for JBOD, SHR, SHR2 and RAID F1.
-#   Added choice of multi-volume or single-volume storage pool.
-#   Added option to skip drive check.
 # v2 and later are for DSM 7 only.
-#   - For DSM 6 use v1 and do not use the auto update option.
+#   For DSM 6 use v1 without the auto update option.
+# Now shows "M.2 Drive #" the same as storage manager.
+# Now uses synostgpool command which allows the following: (Thanks to Severe_Pea_2128 on reddit)
+#   Now supports JBOD, SHR, SHR2 and RAID F1.
+#   Added choice of multi-volume or single-volume storage pool. Multi-volume allows overprovisioning.
+#   Added option to skip drive check.
+#   No longer need to reboot after running the script.
+#   No longer need to do an online assemble.
+# Enables RAID F1 if not enabled and RAID F1 selected.
+# Removed drive check progress as it was not possible with synostgpool.
+# Removed dry run mode as it was not possible with synostgpool.
+# Removed support for SATA M.2 drives.
 
 
 # m2list_assoc contains associative array of [M.2 Drive #]=nvme#n#

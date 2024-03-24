@@ -10,6 +10,7 @@ v2.0.26
   - No longer need to do an online assemble.
 - Enables RAID F1 if not enabled and RAID F1 selected.
 - Removed drive check progress as it was not possible with synostgpool.
+  - You can see the drive check progress in Storage Manager.
 - Removed dry run mode as it was not possible with synostgpool.
 - Removed support for SATA M.2 drives.
 

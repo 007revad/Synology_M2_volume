@@ -56,6 +56,7 @@ For [DSM 6 use v1](https://github.com/007revad/Synology_M2_volume/releases/tag/v
 
 | Model        | DSM version              | M.2 card  | Notes           |
 | ------------ |--------------------------|-----------|-----------------|
+| All          | DSM 6                    |           | [Use v1](https://github.com/007revad/Synology_M2_volume/releases/tag/v1.3.25) run without auto update option |
 | RS2423+      | DSM 7.2-64570 Update 1   |           |
 | DS1823xs+    | DSM 7.2-64561            | M2D20     |
 | DS923+       | DSM 7.2.1-69057 Update 2 |           |
@@ -89,7 +90,6 @@ For [DSM 6 use v1](https://github.com/007revad/Synology_M2_volume/releases/tag/v
 | DS1821+      | DSM 7.2-64216 Beta       |           |
 | DS1821+      | DSM 7.2-64213 Beta       |           |
 | DS1821+      | DSM 7.1.1-42962 Update 4 |           |
-| DS1821+      | **DSM 6.2.4**-25556 Update 7 |           |
 | DS1621+      | DSM 7.2-64570 Update 1   | E10M20-T1 | Also needs [Synology enable_M2_card](https://github.com/007revad/Synology_enable_M2_card) |
 | DS1621+      | DSM 7.2-64570 Update 1   |           |
 | DS1621+      | DSM 7.1.1-42962 Update 4 |           |
@@ -107,7 +107,6 @@ For [DSM 6 use v1](https://github.com/007revad/Synology_M2_volume/releases/tag/v
 | DS920+       | DSM 7.2-64561            |           |
 | DS920+       | DSM 7.2-64216 Beta       |           |
 | DS920+       | DSM 7.1.1-42962 Update 1 |           |
-| DS920+       | **DSM 6**                |           |
 | DS918+       | DSM 7.2-64570 Update 3   |           |
 | RS820+       | DSM 7.2-64570 Update 3   | M2D20     |
 | DS720+       | DSM 7.2.1-69057 Update 4 |           |
@@ -120,7 +119,6 @@ For [DSM 6 use v1](https://github.com/007revad/Synology_M2_volume/releases/tag/v
 | DS720+       | DSM 7.2-64570            |           |
 | DS720+       | DSM 7.2-64561            |           |
 | DS720+       | DSM 7.2-64216 Beta       |           |
-| DS720+       | **DSM 6.2.4**            |           |
 | DS420+       | DSM 7.2-64570 Update 1   |           |
 | DS1819+      | DSM 7.2-64216 Beta       | M2D20     |
 | DS1819+      | DSM 7.1.1                | M2D20     |

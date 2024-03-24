@@ -195,6 +195,9 @@ If the script won't run check the following:
 
 ### DSM 7 screen shots
 
+<p align="center">Create SHR Storage Pool</p>
+<p align="center"><img src="/images/create_shr_v2.png"></p>
+
 <p align="center">Storage Pool available for Online Assemble</p>
 <p align="center"><img src="/images/create_m2_volume_available_pool.png"></p>
 

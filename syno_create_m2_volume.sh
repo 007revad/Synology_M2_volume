@@ -37,6 +37,11 @@
 #   - For DSM 6 use v1 and do not use the auto update option.
 
 
+# m2list_assoc contains associative array of [M.2 Drive #]=nvme#n#
+# m2list array contains list of "M.2 Drive #"
+# mdisk array contains list of selected nvme#n#
+
+
 scriptver="v2.0.26"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
@@ -100,6 +105,8 @@ EOF
 }
 
 
+declare -A m2list_assoc=( )
+
 selectdisk(){ 
     if [[ ${#m2list[@]} -gt "0" ]]; then
 
@@ -129,6 +136,10 @@ selectdisk(){
 #                        selected_disk=""
 #                    fi
                     ;;
+                "M.2 Drive "*)
+                    selected_disk="$nvmes"
+                    break
+                    ;;
                 *)
                     echo -e "${Red}Invalid answer!${Off} Try again." >&2
                     selected_disk=""
@@ -137,7 +148,8 @@ selectdisk(){
         done
 
         if [[ $Done != "yes" ]] && [[ $selected_disk ]]; then
-            mdisk+=("$selected_disk")
+            #mdisk+=("$selected_disk")
+            mdisk+=("${m2list_assoc["$selected_disk"]}")
             # Remove selected drive from list of selectable drives
             remelement "$selected_disk"
             # Keep track of many drives user selected
@@ -495,7 +507,9 @@ getm2info(){
             [[ ! -e /dev/${dev}p1 ]]; then
         echo "No existing partitions on drive" >&2
     fi
-    m2list+=("${dev}")
+    #m2list+=("${dev}")
+    m2list+=("M.2 Drive $pcislot$cardslot")
+    m2list_assoc["M.2 Drive $pcislot$cardslot"]="$dev"
     echo "" >&2
 }
 

@@ -50,6 +50,8 @@ For [DSM 6 use v1](https://github.com/007revad/Synology_M2_volume/releases/tag/v
 | RAID 10     | 4 or more drives | Unlimited      | v1.3.15 and later |
 | RAID F1     | 3 or more drives | Unlimited      | v2 and later (DSM 7 only) |
 
+If RAID F1 is selected the script enables RAID F1 on Synology models that don't officially support RAID F1.
+
 ### Confirmed working on
 
 <details>

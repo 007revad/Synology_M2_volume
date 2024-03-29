@@ -198,23 +198,14 @@ If the script won't run check the following:
 <p align="center">Create SHR Storage Pool</p>
 <p align="center"><img src="/images/create_shr_v2.png"></p>
 
-<p align="center">Storage Pool available for Online Assemble</p>
-<p align="center"><img src="/images/create_m2_volume_available_pool.png"></p>
-
-<p align="center">Online Assemble step 1</p>
-<p align="center"><img src="/images/create_m2_volume_online_assemble.png"></p>
-
-<p align="center">Online Assemble step 2</p>
-<p align="center"><img src="/images/create_m2_volume_online_assemble2.png"></p>
-
 <p align="center">Create Volume</p>
 <p align="center"><img src="/images/create-volume1.png"></p>
 
-<p align="center">Allocate volume capacity</p>
-<p align="center"><img src="/images/create-volume2.png"></p>
-
 <p align="center">Volume description</p>
 <p align="center"><img src="/images/create-volume3.png"></p>
+
+<p align="center">Allocate volume capacity</p>
+<p align="center"><img src="/images/create-volume2.png"></p>
 
 <p align="center">Select file system</p>
 <p align="center"><img src="/images/create-volume4.png"></p>

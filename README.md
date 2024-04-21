@@ -194,6 +194,7 @@ If the script won't run check the following:
     - **Note: DSM 7.1.1. has no SSD TRIM setting for M.2 storage pools**
     - **Note: DSM 7.2 Beta has no SSD TRIM setting for M.2 RAID 0 or RAID 5**
 
+-----
 ### How to repair a NVMe storage pool or upgrade to larger drives
 
 - Repair degraded storage pool in DSM 7.2 or later
@@ -204,6 +205,7 @@ If the script won't run check the following:
 - Repair via SSH for DSM 6
   - [How Synology Support repairs RAID in DSM 6](https://github.com/007revad/Synology_M2_volume/wiki/Repair-RAID-via-SSH)
 
+-----
 ### DSM 7 screen shots
 
 <p align="center">Create SHR Storage Pool</p>

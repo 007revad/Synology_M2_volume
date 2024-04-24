@@ -130,6 +130,7 @@ If RAID F1 is selected the script enables RAID F1 on Synology models that don't 
 | DS1019+      | DSM 7.2-64561            |           |
 | DS1019+      | DSM 7.1.1-42962 Update 4 |           |
 | DS1618+      | DSM 7.1.1                | M2D18     |
+| DS918+       | DSM 7.2.1-69057 Update 5 |           |
 | DS918+       | DSM 7.2-64561            |           |
 | DS918+       | DSM 7.1.1                |           |
 | DS3617xs     | DSM 7.2-64570            | M2D20     |

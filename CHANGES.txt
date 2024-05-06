@@ -1,8 +1,8 @@
 v2.0.27
 - v2 and later are for DSM 7 only.
   - For DSM 6 use v1 without the auto update option.
-- Bug fix for when `synonvme --get-location fails. Issue #150
-- Bug fix for `synostgpool failed to create storage pool` when Single volume storage pool type selected with only 1 M.2 drive. Issue #150
+- Bug fix for when `synonvme --get-location` fails. Issue #150
+- Bug fix for `synostgpool failed to create storage pool` when `Single volume storage pool` type selected with only 1 M.2 drive. Issue #150
 
 v2.0.26
 - v2 and later are for DSM 7 only.

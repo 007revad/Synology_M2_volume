@@ -40,13 +40,12 @@
 # Removed dry run mode as it was not possible with synostgpool.
 # Removed support for SATA M.2 drives.
 
-
 # m2list_assoc contains associative array of [M.2 Drive #]=nvme#n#
 # m2list array contains list of "M.2 Drive #"
 # mdisk array contains list of selected nvme#n#
 
 
-scriptver="v2.0.26"
+scriptver="v2.0.27"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 scriptname=syno_create_m2_volume
@@ -477,11 +476,16 @@ getm2info(){
 
     vendor=$(synonvme --vendor-get "/dev/$(basename -- "${1}")")
     vendor=" $(printf "%s" "$vendor" | cut -d":" -f2 | xargs)"
-    nvme=$(synonvme --get-location "/dev/$(basename -- "${1}")")
-    if [[ ! $nvme =~ "PCI Slot: 0" ]]; then
-        pcislot="$(echo "$nvme" | cut -d"," -f2 | awk '{print $NF}')-"
+    if nvme=$(synonvme --get-location "/dev/$(basename -- "${1}")"); then
+        if [[ ! $nvme =~ "PCI Slot: 0" ]]; then
+            pcislot="$(echo "$nvme" | cut -d"," -f2 | awk '{print $NF}')-"
+        fi
+        cardslot="$(echo "$nvme" | awk '{print $NF}')"
+    else
+        nvme_cmd_failed="yes"
+        pcislot="$(basename -- "${1}")"
+        cardslot=""
     fi
-    cardslot="$(echo "$nvme" | awk '{print $NF}')"
 
     #echo "$2 M.2 $(basename -- "${1}") is $nvmemodel" >&2
     echo "$(basename -- "${1}") M.2 Drive $pcislot$cardslot -$vendor $nvmemodel" >&2
@@ -511,9 +515,13 @@ getm2info(){
             [[ ! -e /dev/${dev}p1 ]]; then
         echo "No existing partitions on drive" >&2
     fi
-    #m2list+=("${dev}")
-    m2list+=("M.2 Drive $pcislot$cardslot")
-    m2list_assoc["M.2 Drive $pcislot$cardslot"]="$dev"
+    if [[ $nvme_cmd_failed == "yes" ]]; then
+        m2list+=("${dev}")
+        m2list_assoc["$dev"]="$dev"
+    else
+        m2list+=("M.2 Drive $pcislot$cardslot")
+        m2list_assoc["M.2 Drive $pcislot$cardslot"]="$dev"
+    fi
     echo "" >&2
 }
 
@@ -803,12 +811,7 @@ fi
 
 echo -e "\nStarting creation of the storage pool."
 if [[ $drivecheck != "yes" ]]; then
-    #if ! synostgpool --create -l $raidtype "${partargs[@]}"; then
-
-    synostgpool --create -l "$raidtype" "${partargs[@]}" &
-    pid=$!
-    wait "$pid"
-    if [[ $? -gt "0" ]]; then
+    if ! synostgpool --create "$@" -l "$raidtype" "${partargs[@]}"; then
         echo "$? synostgpool failed to create storage pool!"
         exit 1
     fi

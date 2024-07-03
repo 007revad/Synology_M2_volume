@@ -892,12 +892,14 @@ fi
 
 echo -e "\nStarting creation of the storage pool."
 if [[ $drivecheck != "yes" ]]; then
-    if ! synostgpool --create "$@" -l "$raidtype" "${partargs[@]}"; then
+    synostgpool --create "$@" -l "$raidtype" "${partargs[@]}"
+    if [[ $? -gt "0" ]]; then
         echo "$? synostgpool failed to create storage pool!"
         exit 1
     fi
 else
-    if ! synostgpool --create "$@" -l "$raidtype" -c "${partargs[@]}"; then
+    synostgpool --create "$@" -l "$raidtype" -c "${partargs[@]}"
+    if [[ $? -gt "0" ]]; then
         echo "$? synostgpool failed to create storage pool!"
         exit 1
     fi

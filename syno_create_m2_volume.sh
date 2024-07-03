@@ -45,7 +45,7 @@
 # mdisk array contains list of selected nvme#n#
 
 
-scriptver="v2.0.27"
+scriptver="v2.0.28"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 scriptname=syno_create_m2_volume
@@ -781,49 +781,6 @@ if [[ ${answer,,} != "yes" ]]; then exit; fi
 
 
 #--------------------------------------------------------------------
-# Create storage pool on selected M.2 drives
-
-# Single volume storage pool (DSM 6 style pool on md#)
-# synostgpool --create -t single -l basic /dev/nvme0n1
-# synostgpool --create -t single -l raid5 /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1
-
-# Multiple volume storage pool (DSM 7 style pool on vg#)
-# synostgpool --create -l basic /dev/nvme0n1
-# synostgpool --create -l raid5 /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1
-
-
-partargs=(  )
-for i in "${mdisk[@]}"; do
-   :
-   partargs+=(
-       /dev/"${i}"
-   )
-done
-
-if [[ $pooltype == "single" ]]; then
-    # Unset existing arguments
-    while [[ $1 ]]; do shift; done
-    # Set -t single arguments
-    set -- "$@" "-t"
-    set -- "$@" "single"
-fi
-
-
-echo -e "\nStarting creation of the storage pool."
-if [[ $drivecheck != "yes" ]]; then
-    if ! synostgpool --create "$@" -l "$raidtype" "${partargs[@]}"; then
-        echo "$? synostgpool failed to create storage pool!"
-        exit 1
-    fi
-else
-    if ! synostgpool --create "$@" -l "$raidtype" -c "${partargs[@]}"; then
-        echo "$? synostgpool failed to create storage pool!"
-        exit 1
-    fi
-fi
-
-
-#--------------------------------------------------------------------
 # Enable m2 volume support - DSM 7.1 and later only
 
 # Backup synoinfo.conf if needed
@@ -900,6 +857,51 @@ if [[ $raidtype == "raid_f1" ]]; then
                 echo -e "\n${Error}ERROR${Off} Failed to enable RAID F1 support!"
             fi
         fi
+    fi
+fi
+
+
+#--------------------------------------------------------------------
+# Create storage pool on selected M.2 drives
+
+# Single volume storage pool (DSM 6 style pool on md#)
+# synostgpool --create -t single -l basic /dev/nvme0n1
+# synostgpool --create -t single -l raid5 /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1
+
+# Multiple volume storage pool (DSM 7 style pool on vg#)
+# synostgpool --create -l basic /dev/nvme0n1
+# synostgpool --create -l raid5 /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1
+
+
+partargs=(  )
+for i in "${mdisk[@]}"; do
+   :
+   partargs+=(
+       /dev/"${i}"
+   )
+done
+
+if [[ $pooltype == "single" ]]; then
+    # Unset existing arguments
+    while [[ $1 ]]; do shift; done
+    # Set -t single arguments
+    set -- "$@" "-t"
+    set -- "$@" "single"
+fi
+
+
+echo -e "\nStarting creation of the storage pool."
+if [[ $drivecheck != "yes" ]]; then
+    synostgpool --create "$@" -l "$raidtype" "${partargs[@]}"
+    if [[ $? -gt "0" ]]; then
+        echo "$? synostgpool failed to create storage pool!"
+        exit 1
+    fi
+else
+    synostgpool --create "$@" -l "$raidtype" -c "${partargs[@]}"
+    if [[ $? -gt "0" ]]; then
+        echo "$? synostgpool failed to create storage pool!"
+        exit 1
     fi
 fi
 

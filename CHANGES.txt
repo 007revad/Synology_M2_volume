@@ -1,3 +1,9 @@
+v2.0.28
+- v2 and later are for DSM 7 only.
+  - For DSM 6 use v1 without the auto update option.
+- Added Patriot vendor id.
+- Now enables m2 volume support before creating the storage pool to hopefully prevent Issue #163
+
 v2.0.27
 - v2 and later are for DSM 7 only.
   - For DSM 6 use v1 without the auto update option.

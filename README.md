@@ -95,6 +95,7 @@ If RAID F1 is selected the script enables RAID F1 on Synology models that don't 
 | DS1821+      | DSM 7.2-64216 Beta       |           |
 | DS1821+      | DSM 7.2-64213 Beta       |           |
 | DS1821+      | DSM 7.1.1-42962 Update 4 |           |
+| DS1621xs+    | DSM 7.2.1-69057 Update 5 |           |
 | DS1621+      | DSM 7.2-64570 Update 1   | E10M20-T1 | Also needs [Synology enable_M2_card](https://github.com/007revad/Synology_enable_M2_card) |
 | DS1621+      | DSM 7.2-64570 Update 1   |           |
 | DS1621+      | DSM 7.1.1-42962 Update 4 |           |

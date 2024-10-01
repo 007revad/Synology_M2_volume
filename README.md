@@ -196,8 +196,8 @@ If the script won't run check the following:
     - Confirm your settings and click Apply to finish creating your M.2 volume.
 4. Optionally enable and schedule TRIM:
     - Storage Pool > ... > Settings > SSD TRIM    
+    - **Note: DSM 7.2 and later has no SSD TRIM setting for M.2 RAID 0**
     - **Note: DSM 7.1.1. has no SSD TRIM setting for M.2 storage pools**
-    - **Note: DSM 7.2 Beta has no SSD TRIM setting for M.2 RAID 0 or RAID 5**
 
 -----
 ### How to repair a NVMe storage pool or upgrade to larger drives

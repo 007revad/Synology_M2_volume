@@ -69,6 +69,7 @@ If RAID F1 is selected the script enables RAID F1 on Synology models that don't 
 | DS723+       | DSM 7.2.1-69057 Update 3 |           |
 | DS723+       | DSM 7.2-64570 Update 1   |           |
 | DS723+       | DSM 7.1.1-42962 Update 4 |           |
+| DS423+       | DSM 7.2.2-72806          |           |
 | DS423+       | DSM 7.2.1-69057 Update 3 |           |
 | DS423+       | DSM 7.2-64570 Update 3   |           |
 | DS423+       | DSM 7.1.1-42962 Update 4 |           |

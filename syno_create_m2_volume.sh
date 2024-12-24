@@ -45,7 +45,7 @@
 # mdisk array contains list of selected nvme#n#
 
 
-scriptver="v2.0.28"
+scriptver="v2.0.29"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 scriptname=syno_create_m2_volume
@@ -145,6 +145,7 @@ selectdisk(){
                     ;;
                 *)
                     echo -e "${Red}Invalid answer!${Off} Try again." >&2
+                    #echo -e "There is no menu item $?)" >&2
                     selected_disk=""
                     ;;
             esac
@@ -407,7 +408,7 @@ if ! printf "%s\n%s\n" "$tag" "$scriptver" |
 
                             # Copy new CHANGES.txt file to script location (if script on a volume)
                             if [[ $scriptpath =~ /volume* ]]; then
-                                # Set permsissions on CHANGES.txt
+                                # Set permissions on CHANGES.txt
                                 if ! chmod 664 "/tmp/$script-$shorttag/CHANGES.txt"; then
                                     permerr=1
                                     echo -e "${Error}ERROR${Off} Failed to set permissions on:"
@@ -893,15 +894,19 @@ fi
 echo -e "\nStarting creation of the storage pool."
 if [[ $drivecheck != "yes" ]]; then
     synostgpool --create "$@" -l "$raidtype" "${partargs[@]}"
-    if [[ $? -gt "0" ]]; then
-        echo "$? synostgpool failed to create storage pool!"
-        exit 1
+    code="$?"
+    if [[ $code -gt "0" ]]; then
+        ding
+        echo "$code synostgpool failed to create storage pool!"
+        #exit 1
     fi
 else
     synostgpool --create "$@" -l "$raidtype" -c "${partargs[@]}"
-    if [[ $? -gt "0" ]]; then
-        echo "$? synostgpool failed to create storage pool!"
-        exit 1
+    code="$?"
+    if [[ $code -gt "0" ]]; then
+        ding
+        echo "$code synostgpool failed to create storage pool!"
+        #exit 1
     fi
 fi
 

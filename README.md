@@ -63,6 +63,7 @@ If RAID F1 is selected the script enables RAID F1 on Synology models that don't 
 | All          | DSM 6                    |           | [Use v1](https://github.com/007revad/Synology_M2_volume/releases/tag/v1.3.25) run without auto update option |
 | RS2423+      | DSM 7.2-64570 Update 1   |           |
 | DS1823xs+    | DSM 7.2-64561            | M2D20     |
+| DS923+       | DSM 7.2.2-72806 Update 2 |           |
 | DS923+       | DSM 7.2.2 72806 Update 1 |           |
 | DS923+       | DSM 7.2.1-69057 Update 5 |           |
 | DS923+       | DSM 7.2.1-69057 Update 2 |           |

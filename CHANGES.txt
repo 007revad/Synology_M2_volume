@@ -1,5 +1,7 @@
 v2.0.29
-- Better checking if creating storage was okay.
+- v2 and later are for DSM 7 only.
+  - For DSM 6 use v1 without the auto update option.
+- Improved checking if creating storage was okay.
 - Now skips exiting if creating storage pool failed. Issue #171
 
 v2.0.28

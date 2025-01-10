@@ -45,7 +45,7 @@
 # mdisk array contains list of selected nvme#n#
 
 
-scriptver="v2.0.29"
+scriptver="v2.0.30"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 scriptname=syno_create_m2_volume
@@ -895,17 +895,19 @@ echo -e "\nStarting creation of the storage pool."
 if [[ $drivecheck != "yes" ]]; then
     synostgpool --create "$@" -l "$raidtype" "${partargs[@]}"
     code="$?"
-    if [[ $code -gt "0" ]]; then
-        ding
-        echo "$code synostgpool failed to create storage pool!"
+    if [[ $code -gt "0" ]] &&  [[ ! $code -eq "255" ]]; then
+        #ding
+        #echo "$code synostgpool failed to create storage pool!"
+        echo "synostgpool return code: $code"
         #exit 1
     fi
 else
     synostgpool --create "$@" -l "$raidtype" -c "${partargs[@]}"
     code="$?"
-    if [[ $code -gt "0" ]]; then
-        ding
-        echo "$code synostgpool failed to create storage pool!"
+    if [[ $code -gt "0" ]] &&  [[ ! $code -eq "255" ]]; then
+        #ding
+        #echo "$code synostgpool failed to create storage pool!"
+        echo "synostgpool return code: $code"
         #exit 1
     fi
 fi

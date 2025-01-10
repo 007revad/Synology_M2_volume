@@ -1,3 +1,6 @@
+v2.0.30
+- Changed to ignore synostgpool exit code 255 as it's not an error.
+
 v2.0.29
 - v2 and later are for DSM 7 only.
   - For DSM 6 use v1 without the auto update option.

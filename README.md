@@ -126,6 +126,7 @@ If RAID F1 is selected the script enables RAID F1 on Synology models that don't 
 | RS1619xs+    | DSM 7.2.2-72806 Update 3 |           |
 | DS918+       | DSM 7.2-64570 Update 3   |           |
 | RS820+       | DSM 7.2-64570 Update 3   | M2D20     |
+| DS720+       | DSM 7.2.2 72806 Update 3 |           |
 | DS720+       | DSM 7.2.2 72806 Update 2 |           |
 | DS720+       | DSM 7.2.2 72806 Update 1 |           |
 | DS720+       | DSM 7.2.2-72806          |           |

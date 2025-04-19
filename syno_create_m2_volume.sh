@@ -475,9 +475,9 @@ getm2info(){
     nvmemodel=$(cat "$1/device/model")
     nvmemodel=$(printf "%s" "$nvmemodel" | xargs)  # trim leading/trailing space
 
-    vendor=$(synonvme --vendor-get "/dev/$(basename -- "${1}")")
+    vendor=$(/usr/syno/bin/synonvme --vendor-get "/dev/$(basename -- "${1}")")
     vendor=" $(printf "%s" "$vendor" | cut -d":" -f2 | xargs)"
-    if nvme=$(synonvme --get-location "/dev/$(basename -- "${1}")"); then
+    if nvme=$(/usr/syno/bin/synonvme --get-location "/dev/$(basename -- "${1}")"); then
         if [[ ! $nvme =~ "PCI Slot: 0" ]]; then
             pcislot="$(echo "$nvme" | cut -d"," -f2 | awk '{print $NF}')-"
         fi
@@ -893,7 +893,7 @@ fi
 
 echo -e "\nStarting creation of the storage pool."
 if [[ $drivecheck != "yes" ]]; then
-    synostgpool --create "$@" -l "$raidtype" "${partargs[@]}"
+    /usr/syno/bin/synostgpool --create "$@" -l "$raidtype" "${partargs[@]}"
     code="$?"
     if [[ $code -gt "0" ]] &&  [[ ! $code -eq "255" ]]; then
         #ding
@@ -902,7 +902,7 @@ if [[ $drivecheck != "yes" ]]; then
         #exit 1
     fi
 else
-    synostgpool --create "$@" -l "$raidtype" -c "${partargs[@]}"
+    /usr/syno/bin/synostgpool --create "$@" -l "$raidtype" -c "${partargs[@]}"
     code="$?"
     if [[ $code -gt "0" ]] &&  [[ ! $code -eq "255" ]]; then
         #ding

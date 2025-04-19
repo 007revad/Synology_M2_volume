@@ -1,3 +1,6 @@
+v2.1.31
+- Bug fix for synonvme or synostgpool command not found. Issues #194 and #195
+
 v2.0.30
 - Changed to ignore synostgpool exit code 255 as it's not an error.
 

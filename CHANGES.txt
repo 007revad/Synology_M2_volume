@@ -1,7 +1,11 @@
 v2.1.31
+- v2 and later are for DSM 7 only.
+  - For DSM 6 use v1 without the auto update option.
 - Bug fix for synonvme or synostgpool command not found. Issues #194 and #195
 
 v2.0.30
+- v2 and later are for DSM 7 only.
+  - For DSM 6 use v1 without the auto update option.
 - Changed to ignore synostgpool exit code 255 as it's not an error.
 
 v2.0.29

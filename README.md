@@ -4,7 +4,7 @@
 ![Badge](https://hitscounter.dev/api/hit?url=https%3A%2F%2Fgithub.com%2F007revad%2FSynology_M2_volume&label=Visitors&icon=github&color=%23198754&message=&style=flat&tz=Australia%2FSydney)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/paypalme/007revad)
 [![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/007revad)
-[![committers.top badge](https://user-badge.committers.top/australia/007revad.svg)](https://user-badge.committers.top/australia/007revad)
+<!-- [![committers.top badge](https://user-badge.committers.top/australia/007revad.svg)](https://user-badge.committers.top/australia/007revad) -->
 
 ### Description
 
@@ -73,6 +73,7 @@ If RAID F1 is selected the script enables RAID F1 on Synology models that don't 
 | DS723+       | DSM 7.2.1-69057 Update 3 |           |
 | DS723+       | DSM 7.2-64570 Update 1   |           |
 | DS723+       | DSM 7.1.1-42962 Update 4 |           |
+| DS423+       | DSM 7.2.2-72806 Update 4 |           |
 | DS423+       | DSM 7.2.2-72806          |           |
 | DS423+       | DSM 7.2.1-69057 Update 3 |           |
 | DS423+       | DSM 7.2-64570 Update 3   |           |
@@ -109,6 +110,8 @@ If RAID F1 is selected the script enables RAID F1 on Synology models that don't 
 | DS1520+      | DSM 7.2.1-69057 Update 2 |           |
 | DS1520+      | DSM 7.2-64570 Update 1   |           |
 | DS1520+      | DSM 7.1.1-42962 Update 4 |           |
+| DS920+       | DSM 7.3-81180            |           |
+| DS920+       | DSM 7.2.2 72806 Update 4 |           |
 | DS920+       | DSM 7.2.2 72806 Update 3 |           |
 | DS920+       | DSM 7.2.2 72806 Update 2 |           |
 | DS920+       | DSM 7.2.2 72806 Update 1 |           |

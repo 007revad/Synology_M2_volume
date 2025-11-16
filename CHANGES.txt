@@ -42,6 +42,9 @@ v2.0.26
 - Removed dry run mode as it was not possible with synostgpool.
 - Removed support for SATA M.2 drives.
 
+v1.3.26
+- Bug fix for SATA M.2 drives. Issue #212
+
 v1.3.25
 - Bug fix for when there's more than 9 md block devices. Issue #133
 

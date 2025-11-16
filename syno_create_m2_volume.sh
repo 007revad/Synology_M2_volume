@@ -80,7 +80,7 @@
 # Logical Volume (LV): VG's are divided into LV's and are mounted as partitions.
 
 
-scriptver="v1.3.25"
+scriptver="v1.3.26"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 scriptname=syno_create_m2_volume
@@ -178,7 +178,7 @@ selectdisk(){
                 Quit)
                     exit
                     ;;
-                nvme*)
+                nvme*|nvc*)
 #                    if [[ " ${m2list[*]} "  =~ " ${nvmes} " ]]; then
                         selected_disk="$nvmes"
                         break

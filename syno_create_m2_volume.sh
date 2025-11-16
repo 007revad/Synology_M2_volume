@@ -45,7 +45,7 @@
 # mdisk array contains list of selected nvme#n#
 
 
-scriptver="v2.1.31"
+scriptver="v2.1.32"
 script=Synology_M2_volume
 repo="007revad/Synology_M2_volume"
 scriptname=syno_create_m2_volume
@@ -130,7 +130,7 @@ selectdisk(){
                 Quit)
                     exit
                     ;;
-                nvme*)
+                nvme*|nvc*)
 #                    if [[ " ${m2list[*]} "  =~ " ${nvmes} " ]]; then
                         selected_disk="$nvmes"
                         break

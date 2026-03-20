@@ -38,18 +38,18 @@ For [DSM 6 use v1](https://github.com/007revad/Synology_M2_volume/releases/tag/v
 
 ### RAID levels supported
 
-| RAID Level  | Min Drives Required  | Maximum Drives | Script version |
-| ----------- |------------------|----------------|----------------|
-| SHR 1       | 1 or more drives | Unlimited      | v2 and later (DSM 7 only) |
-| SHR 2       | 4 or more drives | Unlimited      | v2 and later (DSM 7 only) |
-| Basic       | 1 drive          | 1 drive        | all |
-| JBOD        | 1 or more drives | Unlimited      | v2 and later (DSM 7 only) |
-| RAID 0      | 2 or more drives | Unlimited      | all |
-| RAID 1      | 2 or more drives | 4 drives       | all |
-| RAID 5      | 3 or more drives | Unlimited      | all |
-| RAID 6      | 4 or more drives | Unlimited      | v1.3.15 and later |
-| RAID 10     | 4 or more drives | Unlimited      | v1.3.15 and later |
-| RAID F1     | 3 or more drives | Unlimited      | v2 and later (DSM 7 only) |
+| RAID Level  | Min Drives Required  | Maximum Drives | Script version            |
+| ----------- |----------------------|----------------|---------------------------|
+| SHR 1       | 1 or more drives     | Unlimited      | v2 and later (DSM 7 only) |
+| SHR 2       | 4 or more drives     | Unlimited      | v2 and later (DSM 7 only) |
+| Basic       | 1 drive              | 1 drive        | all                       |
+| JBOD        | 1 or more drives     | Unlimited      | v2 and later (DSM 7 only) |
+| RAID 0      | 2 or more drives     | Unlimited      | all                       |
+| RAID 1      | 2 or more drives     | 4 drives       | all                       |
+| RAID 5      | 3 or more drives     | Unlimited      | all                       |
+| RAID 6      | 4 or more drives     | Unlimited      | v1.3.15 and later         |
+| RAID 10     | 4 or more drives     | Unlimited      | v1.3.15 and later         |
+| RAID F1     | 3 or more drives     | Unlimited      | v2 and later (DSM 7 only) |
 
 If RAID F1 is selected the script enables RAID F1 on Synology models that don't officially support RAID F1.
 
@@ -112,6 +112,8 @@ If RAID F1 is selected the script enables RAID F1 on Synology models that don't 
 | DS1520+      | DSM 7.2.1-69057 Update 2 |           |
 | DS1520+      | DSM 7.2-64570 Update 1   |           |
 | DS1520+      | DSM 7.1.1-42962 Update 4 |           |
+| DS920+       | DSM 7.3.2-86009 Update 3 |           |
+| DS920+       | DSM 7.3.2-86009 Update 2 |           |
 | DS920+       | DSM 7.3.2-86009 Update 1 |           |
 | DS920+       | DSM 7.3.2-86009          |           |
 | DS920+       | DSM 7.3.1-86003 Update 1 |           |
